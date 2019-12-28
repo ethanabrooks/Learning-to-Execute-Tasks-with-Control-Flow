@@ -10,6 +10,9 @@
 \usepackage{tikz}
 \usepackage{listings}
 \usepackage{courier}
+\usepackage{amsmath, amsfonts}
+\usepackage{algorithm,float}
+\usepackage{lipsum}
 
 \lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
 \lstset{framextopmargin=50pt} % ,frame=bottomline}
@@ -22,7 +25,48 @@
 
 % Attempt to make hyperref and algorithmic work together better:
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
+\newcommand{\setalglineno}[1]{%
+  \setcounter{ALC@line}{\numexpr#1-1}}
 
+\newcommand{\algo}[3][
+    \STATE $V_t, \mathbf{u}_t, \mathbf{h}_t  \gets \GRU{\mathbf{x}_t, \mathbf{M}_{p_t}, \mathbf{h}_{t-1}}$
+    %\COMMENT{
+      %$\mathbf{\pi}_t \in \mathbb{R}^\mathcal{A}$. $V_t$ is the current value
+    %estimate. $\mathbf{u}_t\in \mathbb{R}^w$.}
+    \STATE $\mathbf{g}_{t} \sim \pi_\theta\left(\mathbf{h}_t\right)$
+    %\COMMENT{$\mathbf{g}_t$ is the current action}
+    \STATE $d_{t} \sim \Cat\left(\mathbf{W}_t\mathbf{u}_t\right)$ 
+    \STATE $p_{t + 1} \gets p_t + d_t$
+]
+{
+
+\begin{algorithm}[tb]
+  \caption{#2}
+  \label{multi-line}
+  \begin{algorithmic}[1]
+    \STATE {\bfseries Inputs:} $p_t, \mathbf{M}, \mathbf{x}_t, \mathbf{h}_{t-1}$
+    %\STATE number of lines per task $n \in \mathbb{N}$,
+    %\STATE max graph arity $w \in \mathbb{N}$,
+    %\STATE hidden-state size $h \in \mathbb{N}$,
+    %\STATE embedded task matrix $\mathbf{M} \in \mathbb{R}^{n\times h}$,
+    %\STATE observation $\mathbf{x}_t \in \mathbb{R}^{m}$ for each time step
+    %$t$ of episode.
+    %\FOR{each episode}
+    %\STATE $p_0 \gets 0$
+    %\COMMENT{begin episode attending to memory slot 0}
+    %\STATE $\mathbf{h}_0 \gets \mathbf{0}$
+    %\COMMENT{$\mathbf{h}_0\in \mathbb{R}^h$}
+    #3
+    #1
+  \end{algorithmic}
+\end{algorithm}
+}
+
+\DeclareMathOperator{\GRU}{GRU}
+\DeclareMathOperator{\BIGRU}{BI-GRU}
+\DeclareMathOperator{\Cat}{Cat}
+\DeclareMathOperator{\roll}{roll}
+\DeclareMathOperator{\scan}{scan}
 % Use the following line for the initial blind version submitted for review:
 %\usepackage{icml2019}
 
@@ -39,10 +83,12 @@
 % Therefore, a short form for the running title is supplied here:
 \icmltitlerunning{Learning to Execute Tasks with Control Flow}
 
+
 \begin{document}
 
 \twocolumn[
-\icmltitle{Learning to Execute Tasks with Control Flow} 
+\icmltitle{Learning to Execute Tasks with Control Flow}
+
 % It is OKAY to include author information, even for blind
 % submissions: the style file will automatically remove it for you
 % unless you've provided the [accepted] option to the icml2019
@@ -100,19 +146,19 @@
 %\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 
 \begin{abstract}
-This document provides a basic paper template and submission guidelines.
-Abstracts must be a single paragraph, ideally between 4--6 sentences long.
-Gross violations will trigger corrections at the camera-ready phase.
+  This research studies tasks comprising subtasks with nonlinear control-flow based on conditions in
+  the environment. We present an algorithm capable not only of mastering these
+  tasks, but of zero-shot generalization to longer tasks.
 \end{abstract}
 \section{Introduction}
 One important goal of reinforcement learning is to develop agents capable of
 executing complex instructions. Many different factors contribute to the
 complexity of plausible instructions. In this work, we focus on the problem of
-control flow in tasks comprised of multiple subtasks. Whereas existing work
+control flow in tasks comprising multiple subtasks. Whereas existing work
 \cite{oh2017zero} studied problems in which the succession of subtasks was
 sequential, this work studies problems in which conditions in the environment
 determine succession. Concretely, we examine problems in which programmatic
-control-flow statements, e.g. \texttt{if} and \texttt{while}, determine the subtask
+control-flow statements, e.g. \texttt{if} and \texttt{while}, determine the next subtask
 that must be performed by the agent. 
 
 In keeping with \cite{oh2017zero}, we study tasks in which the observation does
@@ -137,38 +183,6 @@ to tasks multiple times the length of the longest training tasks.
 \section{Related Work}
 Todo.
 \section{Problem Formulation}
-In order to study the problem of instructions with complex control-flow, we
-study tasks based on a Domain Specific Language (DSL), similar to \cite{sun2020program}.
-At the beginning of an episode our agent observes an numerical representation of
-the task. Each time-step the agent also receives an observation of the
-environment.
-
-We assume a pretrained lower-level agent that will perform whatever subtask our
-agent gives to it. Thus, our agent does not
-choose the primitive actions to perform in the environment, but the higher-level
-subtask that determines the behavior of the lower level agent.
-
-\subsection{Tasks}
-Figure \ref{grammer} delineates the grammar for tasks used in our domain.
-Intuitively, tasks consist of lists of statements, which are either subtasks,
-if-conditions, or while-loops. Subtasks consist of (interaction, object) pairs,
-where an interaction corresponds to \textit{visit}, \textit{pickup}, or
-\textit{transform} and an object corresponds to \textit{cat}, \textit{pig},
-
-\begin{figure}[t]
-\vskip 0.2in
-\centerline{\includegraphics[width=\columnwidth]{grammar}}
-\caption{Grammar defining valid tasks}
-\label{grammer}
-\vskip -0.2in
-\end{figure}
-
-\subsection{Environment}
-In keeping with \cite{oh2017zero}, our environment consists of a gridworld in which
-objects (cat, pig, sheep, goat), are randomly placed. In order to perform a
-subtask, the agent must navigate to the object, and perform the appropriate
-interaction (visit, pickup, or transform), which each affect the environment in
-a different way.
 
 \begin{figure}[t]
   \centering
@@ -187,7 +201,7 @@ a different way.
   \hfill
   \begin{subfigure}{.45\columnwidth}
     \centering
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}[]
 1  While cat
 2    transform cat
 3    visit pig
@@ -204,14 +218,226 @@ a different way.
   \hfill
   \caption{Example task with environment}
 \end{figure}
+In order to study the problem of instructions with complex control-flow, we
+study tasks based on a Domain Specific Language (DSL), similar to \cite{sun2020program}.
+At the beginning of an episode our agent observes a numerical representation of
+the task. Each time-step the agent also receives an observation of the
+environment.
+
+We assume a pretrained lower-level agent that will perform whatever subtask our
+agent gives to it. Thus, our agent does not
+choose the primitive actions to perform in the environment, but the higher-level
+subtask that determines the behavior of the lower-level agent.
+
+\subsection{Tasks}
+Figure \ref{grammer} defines the grammar for tasks used in our domain.
+Intuitively, tasks consist of lists of statements, which are either subtasks,
+if-conditions, or while-loops. Subtasks consist of (interaction, object) pairs,
+where an interaction corresponds to \textit{visit}, \textit{pickup}, or
+\textit{transform} and an object corresponds to \textit{cat}, \textit{pig},
+\textit{sheep}, or \textit{goat}.
+
+\begin{figure}[t]
+\vskip 0.2in
+\centerline{\includegraphics[width=\columnwidth]{grammar}}
+\caption{Grammar defining valid tasks}
+\label{grammer}
+\vskip -0.2in
+\end{figure}
+
+\subsection{Environment}
+In keeping with \cite{oh2017zero}, our environment consists of a gridworld in which
+objects (cat, pig, sheep, goat), are randomly placed. In order to perform a
+subtask, the agent must navigate to the object, and perform the appropriate
+interaction (visit, pickup, or transform), which each affect the environment in
+a different way.
 
 
 \section{Approach}
-Todo.
+As stated earlier, conventional recurrent architectures are capable of
+accomplishing the task described. However, what sets our architecture apart is
+its capacity to generalize to larger tasks. Our architecture incorporates three
+key insights:
+
+\begin{enumerate}
+  \item \textbf{Internal memory pointer:} Borrowing from \cite{oh2017zero}, our architecture incorporates an
+    internal memory pointer that learns to track the agent's progress through
+    the larger task.
+  \item \textbf{Task scanning:} When moving the internal memory pointer, the agent
+    chooses the next line by ``scanning'' a learned representation of the  task and
+    jumping to the next occurrence of some information in the learned
+    representation, instead of basing the choice of movement on
+    the length or direction of movement.
+  \item \textbf{Task rolling:} Our agent shifts or ``rolls'' the learned representation of the task
+    specification so that the agent always chooses movements of the internal memory pointer
+    relative to the current active line.
+\end{enumerate}
+
+\subsection{Internal memory pointer}
+In \cite{oh2017zero}, the architecture generates a learned representation
+$\mathbf{M}$ of the
+task using ``Bag-of-words'' style
+embeddings given numerical encodings of each subtask. The agent chooses actions
+(subtask parameters) as a function of a weighted sum of these
+embeddings. The agent learns a convolution operator 
+that smoothly shifts the attention of these weights left or right by at most one step.
+
+We modify this approach to the internal memory pointer by using hard instead of
+soft attention -- that is, instead of maintaining a set of weights over all
+lines in the task, we maintain a single integer pointer $0 \le p_t < K$, where
+$K$ is the length of the task,
+whose movements are drawn from a learned distribution. We found that this was beneficial, since a smooth shift might
+cause the pointer to split along different paths of a conditional statement.
+
+Moreover, because the next line in the task may not immediately follow or
+precede the current line, we found that it was beneficial to allow the agent to
+move the pointer greater distances than a single line. We therefore augment the
+possible action space for the internal pointer to include movements to all other
+lines in the task.
+
+\subsection{Task scanning}\label{task-scanning}
+Our architecture generates a graph representation of each task. That is, from every line in the task, we produce
+$\ell$ outgoing edges which each correspond to a learned distribution over other lines
+in the task. To produce each distribution, we feed the embedded representation
+of the task $\mathbf{M}$ through a bidirectional GRU to produce a representation of the task
+that incorporates local context information. The outputs of the GRU in both
+directions are projected to a vector $\mathbf{B} \in (0, 1)^{K\times \ell}$ using a sigmoidal
+perceptron. Finally the equation for the distribution over next lines is
+\begin{equation}
+  \mathbf{P}_{ij} = \mathbf{B}_{ij}\prod_{k \in (1, -1, 2, -2, \dots}\left(1 -
+  \mathbf{B}_{kj}\right)
+\end{equation}
+where $\mathbf{P} \in \mathbb{R}^{K\times\ell}$. Intuitively, $\mathbf{P}$ is the distribution produced by
+sampling a Bernoulli distribution parameterized by $\mathbf{B}_k$ at each index
+$k$, concentrically moving away from the first index, and stopping at the first success.
+
+As in \cite{oh2017zero}, movements of the internal memory pointer are a learned
+function of the history of selections in memory, of actions and of observations.
+Concretely, we generate a hidden state by feeding all of these values each time
+step through a Gated Recurrent Network \cite{ChoMGBSB14}:
+\begin{equation}
+  \mathbf{h}_t = \GRU\left(f_\theta\left(\mathbf{x_t}\right), \mathbf{r}_{t-1}, \mathbf{g}_{t-1},
+  \mathbf{h}_{t-1}\right)
+\end{equation}
+where $f_\theta$ is a convolutional neural network. Whereas \cite{oh2017zero}
+projects $\mathbf{h}_{t}$ to the one-step convolution operator described in the
+previous section, we project $\mathbf{h}_t$ to $\mathbf{u}_t\in \mathbb{R}^\ell$, a weight vector
+used to choose among paths previously encoded from the task. Thus the final
+distribution over next lines is $\Cat(\mathbf{P}_{p_t}\mathbf{u}_t)$, where
+$p_t$ is the current memory index.
+
+\subsection{Task rolling}
+This feature takes advantage of the fact that the rules of control flow are
+invariant to the position of the current line in the task. ``Rolling'' here
+refers to a modular operation by which all elements in a tensor are shifted in
+one direction such that elements shifted beyond the last position are
+re-introduced at the first position. For example, rolling the tensor 
+$\begin{bmatrix} 1 & 2 & 3 & 4 & 5 \end{bmatrix}$ by $-2$ generates the tensor
+$\begin{bmatrix} 3 & 4 & 5 & 1 & 2 \end{bmatrix}$. 
+
+Our architecture employs rolling by rolling the task to the current memory index
+$p_t$ before feeding it to the bidirectional GRU. Thus the forward GRU takes lines in the
+order $(p_t, p_t + 1, \dots, K, 1, \dots, p_t - 1)$, running from the current
+line, wrapping around the last line of the task, and returning to the line
+before the current line. Thus the operations described in section \ref{task-scanning} are all performed
+relative to the current active line in memory.
+
+\algo{Subtask update}{
+    \STATE $\mathbf{M}^{p_t} \gets \roll\left(\mathbf{M}, -p_t\right)$
+    %\COMMENT{roll function rotates $\mathbf{M}$ around first
+    %axis. $\mathbf{M}_t \in \mathbb{R}^h$}
+    \STATE ${\mathbf{H}_t} \gets \BIGRU\left(\mathbf{M}^{p_t}\right)$
+    %\COMMENT{{$\mathbf{H}_t \in \mathbb{R}^{2n \times w \times h}$}}
+    \STATE ${\mathbf{P}_t \gets \scan\left(\mathbf{H}_t\right)}$
+    %\COMMENT{$\mathbf{P}_t$ comprises $\ell$ $2K$-dimensional probability
+    %distributions}
+}{}{}
+\begin{algorithm}[tb]
+  \caption{Scan Function}
+  \label{scan}
+  \begin{algorithmic}[1]
+   \STATE {\bfseries Inputs:} 
+$\mathbf{H} \in \mathbb{R}^{2n \times w \times h}$ 
+%\STATE $\mathbf{B} \gets \sigma\left(\Call{MLP}{\mathbf{H}}\right)$
+\COMMENT{$\mathbf{B}\in \mathbb{R}^{a \times w}$}
+\STATE $\mathbf{B}_{-1} \gets 1$  
+\STATE initialize $\mathbf{W} \in \mathbb{R}^{2n \times w}$
+\FOR{$i$ in $0, \dots, 2n$}
+\STATE $\mathbf{W}_i \gets \mathbf{B}_i\prod_{j=1}^{i-1}\left(1 - \mathbf{B}_j\right)$
+\COMMENT{This expression ensures the columns of $\mathbf{W} \in
+\mathbb{R}^{2n}$.}
+\ENDFOR
+\STATE return $\mathbf{W}$
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{figure*}[]
+  \centering
+  \begin{subfigure}{.33\textwidth}
+    \centering
+    \centerline{\includegraphics[trim=100 0 100 100, clip, width=\columnwidth]{figures/eval20}}
+    \caption{Evaluation on tasks of length 20}
+  \end{subfigure}%
+  \begin{subfigure}{.33\textwidth}
+    \centering
+    \centerline{\includegraphics[trim=100 0 100 100, clip, width=\columnwidth]{figures/eval30}}
+    \caption{Evaluation on tasks of length 30}
+  \end{subfigure}%
+  \begin{subfigure}{.33\textwidth}
+    \centering
+    \centerline{\includegraphics[trim=100 0 100 100, clip, width=\columnwidth]{figures/eval40}}
+    \caption{Evaluation on tasks of length 40}
+  \end{subfigure}%
+  \caption{Each graph demonstrates the capability of the agent to generalize to
+  longer task lengths on the minimal environment}
+\end{figure*}
+
+To do: architecture schematic
 \section{Experiments}
-Todo.
+In order to validate the effectiveness of our algorithm, we ran two sets of
+experiments in different environments. The first environment is minimal,
+intended only to test
+the agent's capability to move the internal memory pointer through a task
+involving complex control flow. The second involves temporally-extended subtasks
+of the kind discussed earlier and non-trivial logical conditions.
+
+In our experiments, we ablate the main features of our algorithm in order to
+test their effectiveness. We present three baselines:
+\begin{enumerate}
+  \item \textbf{No scan:} This baseline removes the task scanning feature by
+    taking the last output of $\BIGRU(\mathbf{M}^{p_t})$ and projecting it to
+    a distribution over possible forward and backward pointer movements.
+    Movements that go beyond the beggining or end of the task are clipped.
+  \item \textbf{No roll:} This baseline does not roll $\mathbf{M}$ before feeding
+    it to the bidirectional GRU.
+  \item \textbf{No roll or scan:} This baseline combines both ablations.
+\end{enumerate}
+
+\subsection{Minimal Environment}
+In the minimal setting, subtasks are not
+temporally extended -- as soon as the agent outputs the correct subtask
+parameter, the subtask is complete and the external program counter advances.
+Moreover, conditions are evaluated according to a simple ``condition bit'' which
+is randomly 1 or 0, with 50\% probability. If the condition bit is 1,
+if-conditions and while-conditions pass, otherwise they fail.
+
+\subsection{Complex Environment}
+In this setting, the agent dictates subtask parameters to a pretrained
+lower-level agent who executes them. Thus subtasks may take several turns to
+complete. Moreover, conditions are parameterized by \textit{objects} and they
+are evaluated according whether the object exists. For example, the statement
+\texttt{If cat} evaluates to true, if there is a cat somewhere in the
+environment, and false otherwise.
+
+\subsection{Results}
+To do
+
+\subsection{Failure Analysis}
+To do
+
 \section{Conclusion}
-Todo.
+To do
+
 
 %\section{Electronic Submission}
 %\label{submission}
@@ -690,8 +916,8 @@ Todo.
 %\textbf{Please do not use Apple's preview to cut off supplementary material.} In
 %previous years it has altered margins, and created headaches at the camera-ready
 %stage. 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \end{document}
