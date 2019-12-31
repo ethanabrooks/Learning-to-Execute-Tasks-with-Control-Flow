@@ -287,6 +287,42 @@ key insights:
     relative to the current active line.
 \end{enumerate}
 
+\begin{figure}[t]
+  \centering
+\begin{tikzpicture}[x=2mm,y=2mm,
+    bin/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=4mm,
+% The border:
+thin, draw,
+},
+    memory/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=8mm,
+minimum width=24mm,
+% The border:
+thin, draw,
+}]
+  \node[memory]                         (M) at (10, 2) {$\mathbf{M}$};
+  \node[memory]                         (K) at (12, 20) {$\mathbf{K}$};
+  \node at (7, -1) {$p_t$};
+  \node[bin]                            (g) at (7, 2) {$\mathbf{g}_t$};
+  \node[minimum size=16mm, draw,circle] (x) at (24, 2 {$\mathbf{x}_t$};
+  \node[circle,draw]                    (controller) at (15, 10) {Controller};
+  \node[bin]                            (k) at (15, 20) {$\mathbf{k}_t$};
+  \node                                 (q) at (15, 17) {$q_t$};
+  \node                                 (p1) at (15, 27) {$p_{t+1}$};
+
+  \draw [->] (g)          to [out=90,in=225] (controller);
+  \draw [->] (x)          to [out=90,in=315] (controller);
+  \draw [->] (controller) to [out=90,in=270] (q);
+  \draw [->] (k) to                          (p1);
+\end{tikzpicture}
+\end{figure}
 \subsection{Internal memory pointer}
 \label{internal-memory-pointer}
 As in \cite{oh2017zero}, given a $K$-length instruction and hidden size $H$, the architecture generates a learned instruction memory
@@ -426,7 +462,6 @@ $\mathbf{H} \in \mathbb{R}^{2K \times H}$
   longer instruction lengths on the minimal environment}
 \end{figure*}
 
-\textcolor{red}{To do: architecture schematic}
 \section{Experiments}
 In order to validate the effectiveness of our algorithm, we ran two sets of
 experiments in different environments. The first environment is minimal,
