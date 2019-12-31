@@ -45,10 +45,10 @@
   \label{multi-line}
   \begin{algorithmic}[1]
     \STATE {\bfseries Inputs:} $p_t, \mathbf{M}, \mathbf{x}_t, \mathbf{h}_{t-1}$
-    %\STATE number of lines per task $n \in \mathbb{N}$,
+    %\STATE number of lines per instruction $n \in \mathbb{N}$,
     %\STATE max graph arity $w \in \mathbb{N}$,
     %\STATE hidden-state size $h \in \mathbb{N}$,
-    %\STATE embedded task matrix $\mathbf{M} \in \mathbb{R}^{n\times h}$,
+    %\STATE embedded instruction matrix $\mathbf{M} \in \mathbb{R}^{n\times h}$,
     %\STATE observation $\mathbf{x}_t \in \mathbb{R}^{m}$ for each time step
     %$t$ of episode.
     %\FOR{each episode}
@@ -73,21 +73,23 @@
 % If accepted, instead use the following line for the camera-ready submission:
 \usepackage[accepted]{icml2019}
 \graphicspath{{figures/}} 
-\pgfdeclareimage[height=1cm]{goat}{figures/goat}
-\pgfdeclareimage[height=1cm]{pig}{figures/pig}
-\pgfdeclareimage[height=1cm]{cat}{figures/cat}
-\pgfdeclareimage[height=1cm]{sheep}{figures/sheep}
-\pgfdeclareimage[height=1cm]{agent}{figures/agent}
+\pgfdeclareimage[height=0.6cm]{goat}{figures/goat}
+\pgfdeclareimage[height=0.6cm]{pig}{figures/pig}
+\pgfdeclareimage[height=0.6cm]{cat}{figures/cat}
+\pgfdeclareimage[height=0.6cm]{sheep}{figures/sheep}
+\pgfdeclareimage[height=0.6cm]{agent}{figures/agent}
 
 % The \icmltitle you define below is probably too long as a header.
 % Therefore, a short form for the running title is supplied here:
-\icmltitlerunning{Learning to Execute Tasks with Control Flow}
+\icmltitlerunning{Hierarchical Reinforcement Learning with Complex Control Flow
+Instructions}
 
 
 \begin{document}
 
 \twocolumn[
-\icmltitle{Learning to Execute Tasks with Control Flow}
+\icmltitle{Hierarchical Reinforcement Learning with Complex Control-Flow
+Instructions}
 
 % It is OKAY to include author information, even for blind
 % submissions: the style file will automatically remove it for you
@@ -146,22 +148,22 @@
 %\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 
 \begin{abstract}
-  This research studies tasks comprising subtasks with nonlinear control-flow based on conditions in
-  the environment. We present an algorithm capable not only of mastering these
-  tasks, but of zero-shot generalization to longer tasks.
+  This research studies instructions comprising subtasks with nonlinear control-flow based on conditions in
+  the environment. We present an algorithm capable not only of performing these
+  instructions, but of zero-shot generalization to longer instructions.
 \end{abstract}
 \section{Introduction}
 One important goal of reinforcement learning is to develop agents capable of
 executing complex instructions. Many different factors contribute to the
 complexity of plausible instructions. In this work, we focus on the problem of
-control flow in tasks comprising multiple subtasks. Whereas existing work
+control flow in instructions comprising multiple subtasks. Whereas existing work
 \cite{oh2017zero} studied problems in which the succession of subtasks was
 sequential, this work studies problems in which conditions in the environment
 determine succession. Concretely, we examine problems in which programmatic
 control-flow statements, e.g. \texttt{if} and \texttt{while}, determine the next subtask
 that must be performed by the agent. 
 
-In keeping with \cite{oh2017zero}, we study tasks in which the observation does
+In keeping with \cite{oh2017zero}, we study instructions in which the observation does
 not include explicit information about the current subtask to be performed.
 Therefore the agent must infer, based on the history of observations, which
 subtask is currently active. This presents the agent three learning challenges:
@@ -171,14 +173,15 @@ subtask is currently active. This presents the agent three learning challenges:
   \item determining whether conditional statements (\texttt{if}, \texttt{else},
     \texttt{while}) evaluate to true or false.
   \item Identifying the next subtask to perform, which may occur several lines before (as in a
-    \texttt{while} loop) or after the current line in the task.
+    \texttt{while} loop) or after the current line in the instruction.
 \end{enumerate}
 
 Existing architectures, e.g. \cite{heess2015memory} incorporate recurrent neural
 architectures and have demonstrated a capacity to learn partially-observed
-tasks. However, we demonstrate that these architectures do not generalize to
-longer tasks. This paper presents a novel architecture capable of generalizing
-to tasks multiple times the length of the longest training tasks.
+tasks. However, we demonstrate that these architectures are only capable of
+mastering instructions up to a certain length. Moreover, these architectures do not
+generalize at all to instructions longer than those in the training set. This paper presents a novel architecture capable of generalizing
+to instructions multiple times the length of the longest training instructions.
 
 \section{Related Work}
 Todo.
@@ -188,13 +191,13 @@ Todo.
   \centering
   \begin{subfigure}{.2\columnwidth}
     \centering
-  \begin{tikzpicture}[]
-    \draw[color=gray] (0,0) grid (4,4);
+  \begin{tikzpicture}[scale=0.6]
+    \draw[color=gray] (0,0) grid (6,6);
     \node at (0.5, 0) {\pgfbox[center,bottom]{\pgfuseimage{pig}}};
-    \node at (3.5, 1) {\pgfbox[center,bottom]{\pgfuseimage{cat}}};
+    \node at (4.5, 1) {\pgfbox[center,bottom]{\pgfuseimage{cat}}};
     \node at (2.5, 3) {\pgfbox[center,bottom]{\pgfuseimage{sheep}}};
-    \node at (3.5, 3) {\pgfbox[center,bottom]{\pgfuseimage{pig}}};
-    \node at (1.5, 2) {\pgfbox[center,bottom]{\pgfuseimage{agent}}};
+    \node at (5.5, 3) {\pgfbox[center,bottom]{\pgfuseimage{pig}}};
+    \node at (1.5, 5) {\pgfbox[center,bottom]{\pgfuseimage{agent}}};
 \end{tikzpicture}
     %\caption{Level 1}
   \end{subfigure}%
@@ -216,22 +219,31 @@ Todo.
     %\caption{Level 2}
   \end{subfigure}%
   \hfill
-  \caption{Example task with environment}
+  \caption{Example instruction with environment}
 \end{figure}
+
 In order to study the problem of instructions with complex control-flow, we
-study tasks based on a Domain Specific Language (DSL), similar to \cite{sun2020program}.
+study instructions based on a Domain Specific Language (DSL), similar to \cite{sun2020program}.
 At the beginning of an episode our agent observes a numerical representation of
-the task. Each time-step the agent also receives an observation of the
-environment.
+the instruction $\mathcal{G}$. Each time-step the agent also receives an observation of the
+environment $\mathcal{O}$. 
 
-We assume a pretrained lower-level agent that will perform whatever subtask our
-agent gives to it. Thus, our agent does not
-choose the primitive actions to perform in the environment, but the higher-level
-subtask that determines the behavior of the lower-level agent.
+We also assume a pretrained lower-level agent that will perform whatever subtask our
+upper-level agent gives to it. Each time step $t$, the policy $\pi_\theta$ of the upper-level agent
+maps an instruction
+$\mathbf{I}\in\mathcal{I}$ and
+an observation $\mathbf{x}_t \in\mathcal{O}$ to a discrete subtask parameter
+$\mathbf{g}_t \in\mathcal{G}$ and the
+pretrained lowerl-level policy maps the subtask parameter and the observation to
+a primitive action $\mathbf{a}_t \in \mathcal{A}$. Concisely:
+\begin{align}
+  \pi_\theta&: \mathcal{I} \times \mathcal{O} \to \mathcal{G} \\
+  \pi'&: \mathcal{G} \times \mathcal{O} \to \mathcal{A}
+\end{align}
 
-\subsection{Tasks}
-Figure \ref{grammer} defines the grammar for tasks used in our domain.
-Intuitively, tasks consist of lists of statements, which are either subtasks,
+\subsection{Instructions}
+Figure \ref{grammer} defines the grammar for instructions used in our domain.
+Intuitively, instructions consist of lists of statements, which are either subtasks,
 if-conditions, or while-loops. Subtasks consist of (interaction, object) pairs,
 where an interaction corresponds to \textit{visit}, \textit{pickup}, or
 \textit{transform} and an object corresponds to \textit{cat}, \textit{pig},
@@ -240,7 +252,7 @@ where an interaction corresponds to \textit{visit}, \textit{pickup}, or
 \begin{figure}[t]
 \vskip 0.2in
 \centerline{\includegraphics[width=\columnwidth]{grammar}}
-\caption{Grammar defining valid tasks}
+\caption{Grammar defining valid instructions}
 \label{grammer}
 \vskip -0.2in
 \end{figure}
@@ -254,52 +266,62 @@ a different way.
 
 
 \section{Approach}
-As stated earlier, conventional recurrent architectures are capable of
-accomplishing the task described. However, what sets our architecture apart is
-its capacity to generalize to larger tasks. Our architecture incorporates three
+\textcolor{red}{As stated earlier, conventional recurrent architectures are capable of
+accomplishing the task described.} However, what sets our architecture apart is
+its capacity to generalize to larger instructions. Our architecture incorporates three
 key insights:
 
 \begin{enumerate}
   \item \textbf{Internal memory pointer:} Borrowing from \cite{oh2017zero}, our architecture incorporates an
     internal memory pointer that learns to track the agent's progress through
-    the larger task.
-  \item \textbf{Task scanning:} When moving the internal memory pointer, the agent
-    chooses the next line by ``scanning'' a learned representation of the  task and
+    the larger instruction.
+  \item \textbf{Instruction Scanning:} When moving the internal memory pointer, the agent
+    chooses the next line by ``scanning'' a learned representation of the  instruction and
     jumping to the next occurrence of some information in the learned
     representation, instead of basing the choice of movement on
     the length or direction of movement.
-  \item \textbf{Task rolling:} Our agent shifts or ``rolls'' the learned representation of the task
+  \item \textbf{Instruction Rolling:} Our agent shifts or ``rolls'' the learned representation of the instruction
     specification so that the agent always chooses movements of the internal memory pointer
     relative to the current active line.
 \end{enumerate}
 
 \subsection{Internal memory pointer}
-In \cite{oh2017zero}, the architecture generates a learned representation
-$\mathbf{M}$ of the
-task using ``Bag-of-words'' style
-embeddings given numerical encodings of each subtask. The agent chooses actions
-(subtask parameters) as a function of a weighted sum of these
+In \cite{oh2017zero}, the architecture generates a learned instruction memory
+$\mathbf{M}$ that encodes each instruction $\mathbf{I}$ 
+using ``Bag-of-words'' style
+encodings applied to each subtask. Each subtask is
+a list of words $\mathbf{i}_k = (w_1,\dots,w_{|\mathbf{i}_k|})$ and each
+instruction is
+a list of subtasks $\mathbf{I} = (\mathbf{i}_1,\dots,\mathbf{i}_{K})$. 
+In order to generate the instruction memory, each word is embedded and the
+embeddings are summed:
+
+The
+upper-level agent chooses 
+subtask parameters as a function of a weighted sum of these
 embeddings. The agent learns a convolution operator 
 that smoothly shifts the attention of these weights left or right by at most one step.
 
 We modify this approach to the internal memory pointer by using hard instead of
 soft attention -- that is, instead of maintaining a set of weights over all
-lines in the task, we maintain a single integer pointer $0 \le p_t < K$, where
-$K$ is the length of the task,
+lines in the instruction, we maintain a single integer pointer $0 \le p_t < K$, where
+$K$ is the length of the instruction,
 whose movements are drawn from a learned distribution. We found that this was beneficial, since a smooth shift might
 cause the pointer to split along different paths of a conditional statement.
 
-Moreover, because the next line in the task may not immediately follow or
+Moreover, because the next line in the instruction may not immediately follow or
 precede the current line, we found that it was beneficial to allow the agent to
 move the pointer greater distances than a single line. We therefore augment the
 possible action space for the internal pointer to include movements to all other
-lines in the task.
+lines in the instruction.
 
-\subsection{Task scanning}\label{task-scanning}
-Our architecture generates a graph representation of each task. That is, from every line in the task, we produce
+\subsection{Instruction Scanning}\label{scanning}
+Our architecture generates a graph representation of each instruction. That is,
+from every line in the instruction, we produce
 $\ell$ outgoing edges which each correspond to a learned distribution over other lines
-in the task. To produce each distribution, we feed the embedded representation
-of the task $\mathbf{M}$ through a bidirectional GRU to produce a representation of the task
+in the instruction. To produce each distribution, we feed the embedded representation
+of the instruction $\mathbf{M}$ through a bidirectional GRU to produce a
+representation of the instruction
 that incorporates local context information. The outputs of the GRU in both
 directions are projected to a vector $\mathbf{B} \in (0, 1)^{K\times \ell}$ using a sigmoidal
 perceptron. Finally the equation for the distribution over next lines is
@@ -322,24 +344,24 @@ step through a Gated Recurrent Network \cite{ChoMGBSB14}:
 where $f_\theta$ is a convolutional neural network. Whereas \cite{oh2017zero}
 projects $\mathbf{h}_{t}$ to the one-step convolution operator described in the
 previous section, we project $\mathbf{h}_t$ to $\mathbf{u}_t\in \mathbb{R}^\ell$, a weight vector
-used to choose among paths previously encoded from the task. Thus the final
+used to choose among paths previously encoded from the instruction. Thus the final
 distribution over next lines is $\Cat(\mathbf{P}_{p_t}\mathbf{u}_t)$, where
 $p_t$ is the current memory index.
 
-\subsection{Task rolling}
+\subsection{Instruction Rolling}
 This feature takes advantage of the fact that the rules of control flow are
-invariant to the position of the current line in the task. ``Rolling'' here
+invariant to the position of the current line in the instruction. ``Rolling'' here
 refers to a modular operation by which all elements in a tensor are shifted in
 one direction such that elements shifted beyond the last position are
 re-introduced at the first position. For example, rolling the tensor 
 $\begin{bmatrix} 1 & 2 & 3 & 4 & 5 \end{bmatrix}$ by $-2$ generates the tensor
 $\begin{bmatrix} 3 & 4 & 5 & 1 & 2 \end{bmatrix}$. 
 
-Our architecture employs rolling by rolling the task to the current memory index
+Our architecture employs rolling by rolling the instruction to the current memory index
 $p_t$ before feeding it to the bidirectional GRU. Thus the forward GRU takes lines in the
 order $(p_t, p_t + 1, \dots, K, 1, \dots, p_t - 1)$, running from the current
-line, wrapping around the last line of the task, and returning to the line
-before the current line. Thus the operations described in section \ref{task-scanning} are all performed
+line, wrapping around the last line of the instruction, and returning to the line
+before the current line. Thus the operations described in section \ref{scanning} are all performed
 relative to the current active line in memory.
 
 \algo{Subtask update}{
@@ -376,20 +398,20 @@ $\mathbf{H} \in \mathbb{R}^{2n \times w \times h}$
   \begin{subfigure}{.33\textwidth}
     \centering
     \centerline{\includegraphics[trim=100 0 100 100, clip, width=\columnwidth]{figures/eval20}}
-    \caption{Evaluation on tasks of length 20}
+    \caption{Evaluation on instructions of length 20}
   \end{subfigure}%
   \begin{subfigure}{.33\textwidth}
     \centering
     \centerline{\includegraphics[trim=100 0 100 100, clip, width=\columnwidth]{figures/eval30}}
-    \caption{Evaluation on tasks of length 30}
+    \caption{Evaluation on instructions of length 30}
   \end{subfigure}%
   \begin{subfigure}{.33\textwidth}
     \centering
     \centerline{\includegraphics[trim=100 0 100 100, clip, width=\columnwidth]{figures/eval40}}
-    \caption{Evaluation on tasks of length 40}
+    \caption{Evaluation on instructions of length 40}
   \end{subfigure}%
   \caption{Each graph demonstrates the capability of the agent to generalize to
-  longer task lengths on the minimal environment}
+  longer instruction lengths on the minimal environment}
 \end{figure*}
 
 To do: architecture schematic
@@ -397,17 +419,17 @@ To do: architecture schematic
 In order to validate the effectiveness of our algorithm, we ran two sets of
 experiments in different environments. The first environment is minimal,
 intended only to test
-the agent's capability to move the internal memory pointer through a task
+the agent's capability to move the internal memory pointer through a instruction
 involving complex control flow. The second involves temporally-extended subtasks
 of the kind discussed earlier and non-trivial logical conditions.
 
 In our experiments, we ablate the main features of our algorithm in order to
 test their effectiveness. We present three baselines:
 \begin{enumerate}
-  \item \textbf{No scan:} This baseline removes the task scanning feature by
+  \item \textbf{No scan:} This baseline removes the instruction scanning feature by
     taking the last output of $\BIGRU(\mathbf{M}^{p_t})$ and projecting it to
     a distribution over possible forward and backward pointer movements.
-    Movements that go beyond the beggining or end of the task are clipped.
+    Movements that go beyond the beggining or end of the instruction are clipped.
   \item \textbf{No roll:} This baseline does not roll $\mathbf{M}$ before feeding
     it to the bidirectional GRU.
   \item \textbf{No roll or scan:} This baseline combines both ablations.
