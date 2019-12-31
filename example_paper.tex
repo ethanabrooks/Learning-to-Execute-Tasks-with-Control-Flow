@@ -45,7 +45,7 @@
   \caption{#2}
   \label{multi-line}
   \begin{algorithmic}[1]
-    \STATE {\bfseries Inputs:} $p_t, \mathbf{M}, \mathbf{x}_t, \mathbf{h}_{t-1}$
+    \STATE {\bfseries Inputs:} $p_t, \mathbf{M} , \mathbf{x}_t, \mathbf{h}_{t-1}$
     %\STATE number of lines per instruction $n \in \mathbb{N}$,
     %\STATE max graph arity $w \in \mathbb{N}$,
     %\STATE hidden-state size $h \in \mathbb{N}$,
@@ -327,16 +327,17 @@ course of the episode.  From every line in the instruction, we produce
 $\ell$ outgoing edges which each correspond to a learned distribution over other lines
 in the instruction. To produce each distribution, we feed the embedded representation
 of the instruction $\mathbf{M}$ through a bidirectional GRU to produce a
-representation $\mathbf{H} \in \mathbb{R}^{K \times H\times 2}$ of the instruction
+representation $\mathbf{H} \in \mathbb{R}^{2K \times H}$ of the instruction
 that incorporates local context information. The outputs of the GRU in both
-directions are projected to a vector $\mathbf{B} \in (0, 1)^{K\times \ell\times
-2 }$ using a sigmoidal
+directions are projected to a vector $\mathbf{B} \in (0, 1)^{2K\times \ell
+ }$ using a sigmoidal
 perceptron. Finally the equation for the distribution over next lines is
 \begin{equation}
+  \label{P}
   \mathbf{P}_{ij} = \mathbf{B}_{ij}\prod_{k \in (1, -1, 2, -2, \dots)}\left(1 -
   \mathbf{B}_{kj}\right)
 \end{equation}
-where $\mathbf{P} \in \mathbb{R}^{K\times\ell\times 2 }$. Intuitively, $\mathbf{P}$ is the distribution produced by
+where $\mathbf{P} \in \mathbb{R}^{2K\times\ell }$. Intuitively, $\mathbf{P}$ is the distribution produced by
 sampling a Bernoulli distribution parameterized by $\mathbf{B}_k$ at each index
 $k$, concentrically moving away from the first index, and stopping at the first success.
 
@@ -366,12 +367,14 @@ re-introduced at the first position. For example, rolling the tensor
 $\begin{bmatrix} 1 & 2 & 3 & 4 & 5 \end{bmatrix}$ by $-2$ generates the tensor
 $\begin{bmatrix} 3 & 4 & 5 & 1 & 2 \end{bmatrix}$. 
 
-Our architecture employs rolling by rolling the instruction to the current memory index
-$p_t$ before feeding it to the bidirectional GRU. Thus the forward GRU takes lines in the
+The relevance to our architecture is that the encoded instruction $\mathbf{M}$ is rolled to the current memory index
+$p_t$ before feeding it to the bidirectional GRU. In other words, the forward GRU takes lines in the
 order $(p_t, p_t + 1, \dots, K, 1, \dots, p_t - 1)$, running from the current
 line, wrapping around the last line of the instruction, and returning to the line
 before the current line. Thus the operations described in section \ref{scanning} are all performed
-relative to the current active line in memory.
+relative to the current active line in memory. That is, $\mathbf{B}_{i}$ in
+equation \ref{P} refers to the row of $\mathbf{B}$ corresponding to the $(p_t +
+i)^{\text{th}}$ index of $\mathbf{M}$ .
 
 \algo{Subtask update}{
     \STATE $\mathbf{M}^{p_t} \gets \roll\left(\mathbf{M}, -p_t\right)$
@@ -388,15 +391,15 @@ relative to the current active line in memory.
   \label{scan}
   \begin{algorithmic}[1]
    \STATE {\bfseries Inputs:} 
-$\mathbf{H} \in \mathbb{R}^{2n \times w \times h}$ 
+$\mathbf{H} \in \mathbb{R}^{2K \times H}$ 
 %\STATE $\mathbf{B} \gets \sigma\left(\Call{MLP}{\mathbf{H}}\right)$
-\COMMENT{$\mathbf{B}\in \mathbb{R}^{a \times w}$}
+%\COMMENT{$\mathbf{B}\in \mathbb{R}^{a \times w}$}
 \STATE $\mathbf{B}_{-1} \gets 1$  
-\STATE initialize $\mathbf{W} \in \mathbb{R}^{2n \times w}$
-\FOR{$i$ in $0, \dots, 2n$}
-\STATE $\mathbf{W}_i \gets \mathbf{B}_i\prod_{j=1}^{i-1}\left(1 - \mathbf{B}_j\right)$
-\COMMENT{This expression ensures the columns of $\mathbf{W} \in
-\mathbb{R}^{2n}$.}
+\STATE initialize $\mathbf{P} \in \mathbb{R}^{2K \times \ell}$
+\FOR{$i$ in $0, \dots, 2K$}
+\STATE $\mathbf{P}_i \gets \mathbf{B}_i\prod_{j=1}^{i-1}\left(1 - \mathbf{B}_j\right)$
+%\COMMENT{This expression ensures the columns of $\mathbf{W} \in
+%\mathbb{R}^{2n}$.}
 \ENDFOR
 \STATE return $\mathbf{W}$
   \end{algorithmic}
@@ -423,14 +426,15 @@ $\mathbf{H} \in \mathbb{R}^{2n \times w \times h}$
   longer instruction lengths on the minimal environment}
 \end{figure*}
 
-To do: architecture schematic
+\textcolor{red}{To do: architecture schematic}
 \section{Experiments}
 In order to validate the effectiveness of our algorithm, we ran two sets of
 experiments in different environments. The first environment is minimal,
 intended only to test
-the agent's capability to move the internal memory pointer through a instruction
+the agent's capability to move the internal memory pointer through an instruction
 involving complex control flow. The second involves temporally-extended subtasks
 of the kind discussed earlier and non-trivial logical conditions.
+
 
 In our experiments, we ablate the main features of our algorithm in order to
 test their effectiveness. We present three baselines:
@@ -450,11 +454,11 @@ temporally extended -- as soon as the agent outputs the correct subtask
 parameter, the subtask is complete and the external program counter advances.
 Moreover, conditions are evaluated according to a simple ``condition bit'' which
 is randomly 1 or 0, with 50\% probability. If the condition bit is 1,
-if-conditions and while-conditions pass, otherwise they fail.
+\texttt{if}-conditions and \texttt{while}-conditions pass, otherwise they fail.
 
 \subsection{Complex Environment}
 In this setting, the agent dictates subtask parameters to a pretrained
-lower-level agent who executes them. Thus subtasks may take several turns to
+lower-level agent who executes them. Thus subtasks may take several time-steps to
 complete. Moreover, conditions are parameterized by \textit{objects} and they
 are evaluated according whether the object exists. For example, the statement
 \texttt{If cat} evaluates to true, if there is a cat somewhere in the
