@@ -35,7 +35,8 @@
     %estimate. $\mathbf{u}_t\in \mathbb{R}^w$.}
     \STATE $\mathbf{g}_{t} \sim \pi_\theta\left(\mathbf{h}_t\right)$
     %\COMMENT{$\mathbf{g}_t$ is the current action}
-    \STATE $d_{t} \sim \Cat\left(\mathbf{W}_t\mathbf{u}_t\right)$ 
+    \STATE $\tilde{\mathbf{u}}_{t} \gets \softmax\left(\mathbf{u}_t\right)$
+    \STATE $d_{t} \sim \Cat\left(\mathbf{W}_t\tilde{\mathbf{u}}_t\right)$ 
     \STATE $p_{t + 1} \gets p_t + d_t$
 ]
 {
@@ -67,6 +68,7 @@
 \DeclareMathOperator{\Cat}{Cat}
 \DeclareMathOperator{\roll}{roll}
 \DeclareMathOperator{\scan}{scan}
+\DeclareMathOperator{\softmax}{softmax}
 % Use the following line for the initial blind version submitted for review:
 %\usepackage{icml2019}
 
@@ -234,7 +236,7 @@ maps an instruction
 $\mathbf{I}\in\mathcal{I}$ and
 an observation $\mathbf{x}_t \in\mathcal{O}$ to a discrete subtask parameter
 $\mathbf{g}_t \in\mathcal{G}$ and the
-pretrained lowerl-level policy maps the subtask parameter and the observation to
+pretrained lower-level policy $\pi'$ maps the subtask parameter and the observation to
 a primitive action $\mathbf{a}_t \in \mathcal{A}$. Concisely:
 \begin{align}
   \pi_\theta&: \mathcal{I} \times \mathcal{O} \to \mathcal{G} \\
@@ -286,27 +288,30 @@ key insights:
 \end{enumerate}
 
 \subsection{Internal memory pointer}
-In \cite{oh2017zero}, the architecture generates a learned instruction memory
-$\mathbf{M}$ that encodes each instruction $\mathbf{I}$ 
+\label{internal-memory-pointer}
+As in \cite{oh2017zero}, given a $K$-length instruction and hidden size $H$, the architecture generates a learned instruction memory
+$\mathbf{M} \in \mathbb{R}^{K \times H}$ that encodes each instruction $\mathbf{I}$ 
 using ``Bag-of-words'' style
-encodings applied to each subtask. Each subtask is
-a list of words $\mathbf{i}_k = (w_1,\dots,w_{|\mathbf{i}_k|})$ and each
-instruction is
-a list of subtasks $\mathbf{I} = (\mathbf{i}_1,\dots,\mathbf{i}_{K})$. 
+encodings applied to each line. Each line is
+a list of words $\mathbf{l}_k = (w^k_1,\dots,w^k_{|\mathbf{l}_k|})$ and each instruction is
+a list of lines $\mathbf{I} = (\mathbf{l}_1,\dots,\mathbf{l}_{K})$. Note that a
+line may either correspond to a subtask or to a control-flow statement.
 In order to generate the instruction memory, each word is embedded and the
 embeddings are summed:
+\begin{equation}
+  \mathbf{M}_k = \sum_{i=1}^{|\mathbf{l}_k|} \phi\left(w^k_i\right)
+\end{equation}
 
-The
+In \cite{oh2017zero}, the
 upper-level agent chooses 
 subtask parameters as a function of a weighted sum of these
-embeddings. The agent learns a convolution operator 
+embeddings and learns a convolution operator 
 that smoothly shifts the attention of these weights left or right by at most one step.
 
 We modify this approach to the internal memory pointer by using hard instead of
-soft attention -- that is, instead of maintaining a set of weights over all
-lines in the instruction, we maintain a single integer pointer $0 \le p_t < K$, where
-$K$ is the length of the instruction,
-whose movements are drawn from a learned distribution. We found that this was beneficial, since a smooth shift might
+soft attention---that is, instead of maintaining a set of weights over all
+lines in the instruction, we maintain a single integer pointer $0 \le p_t < K$ 
+whose movements are sampled from a learned distribution. We found that this was beneficial, since a smooth shift might
 cause the pointer to split along different paths of a conditional statement.
 
 Moreover, because the next line in the instruction may not immediately follow or
@@ -316,20 +321,22 @@ possible action space for the internal pointer to include movements to all other
 lines in the instruction.
 
 \subsection{Instruction Scanning}\label{scanning}
-Our architecture generates a graph representation of each instruction. That is,
-from every line in the instruction, we produce
+Each episode, our architecture generates a graph representation of the
+instruction that allows the internal memory to navigate the instruction over the
+course of the episode.  From every line in the instruction, we produce
 $\ell$ outgoing edges which each correspond to a learned distribution over other lines
 in the instruction. To produce each distribution, we feed the embedded representation
 of the instruction $\mathbf{M}$ through a bidirectional GRU to produce a
-representation of the instruction
+representation $\mathbf{H} \in \mathbb{R}^{K \times H\times 2}$ of the instruction
 that incorporates local context information. The outputs of the GRU in both
-directions are projected to a vector $\mathbf{B} \in (0, 1)^{K\times \ell}$ using a sigmoidal
+directions are projected to a vector $\mathbf{B} \in (0, 1)^{K\times \ell\times
+2 }$ using a sigmoidal
 perceptron. Finally the equation for the distribution over next lines is
 \begin{equation}
-  \mathbf{P}_{ij} = \mathbf{B}_{ij}\prod_{k \in (1, -1, 2, -2, \dots}\left(1 -
+  \mathbf{P}_{ij} = \mathbf{B}_{ij}\prod_{k \in (1, -1, 2, -2, \dots)}\left(1 -
   \mathbf{B}_{kj}\right)
 \end{equation}
-where $\mathbf{P} \in \mathbb{R}^{K\times\ell}$. Intuitively, $\mathbf{P}$ is the distribution produced by
+where $\mathbf{P} \in \mathbb{R}^{K\times\ell\times 2 }$. Intuitively, $\mathbf{P}$ is the distribution produced by
 sampling a Bernoulli distribution parameterized by $\mathbf{B}_k$ at each index
 $k$, concentrically moving away from the first index, and stopping at the first success.
 
@@ -338,15 +345,17 @@ function of the history of selections in memory, of actions and of observations.
 Concretely, we generate a hidden state by feeding all of these values each time
 step through a Gated Recurrent Network \cite{ChoMGBSB14}:
 \begin{equation}
-  \mathbf{h}_t = \GRU\left(f_\theta\left(\mathbf{x_t}\right), \mathbf{r}_{t-1}, \mathbf{g}_{t-1},
+  \mathbf{h}_t = \GRU\left(f_\theta\left(\mathbf{x}_t\right),
+    \mathbf{M}_{p_{t-1}}, \mathbf{g}_{t-1},
   \mathbf{h}_{t-1}\right)
 \end{equation}
 where $f_\theta$ is a convolutional neural network. Whereas \cite{oh2017zero}
-projects $\mathbf{h}_{t}$ to the one-step convolution operator described in the
-previous section, we project $\mathbf{h}_t$ to $\mathbf{u}_t\in \mathbb{R}^\ell$, a weight vector
+projects $\mathbf{h}_{t}$ to the one-step convolution operator described in
+section \ref{internal-memory-pointer}, we project $\mathbf{h}_t$ to $\mathbf{u}_t\in \mathbb{R}^\ell$, a weight vector
 used to choose among paths previously encoded from the instruction. Thus the final
-distribution over next lines is $\Cat(\mathbf{P}_{p_t}\mathbf{u}_t)$, where
-$p_t$ is the current memory index.
+distribution over next lines is
+$\Cat(\mathbf{P}_{p_t}\tilde{\mathbf{u}}_t)$, where $\tilde{\mathbf{u}}_t =
+\softmax\left(\mathbf{u}_t\right)$.
 
 \subsection{Instruction Rolling}
 This feature takes advantage of the fact that the rules of control flow are
