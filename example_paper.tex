@@ -47,7 +47,7 @@
 ]
 {
 
-\begin{algorithm}[tb]
+\begin{algorithm}[b]
   \caption{#2}
   \label{multi-line}
   \begin{algorithmic}[1]
@@ -293,134 +293,6 @@ key insights:
     relative to the current active line.
 \end{enumerate}
 
-\begin{figure}[t]
-  \centering
-  \begin{subfigure}{.4\columnwidth}
-    \centering
-\begin{tikzpicture}[x=2mm,y=2mm,
-    bin/.style={
-% The shape:
-rectangle,
-% The size:
-minimum height=8mm,
-minimum width=7mm,
-},
-    matrix/.style={
-% The shape:
-rectangle,
-% The size:
-minimum height=8mm,
-minimum width=28mm,
-% The border:
-thin, draw,
-},
-    vector/.style={
-% The shape:
-rectangle,
-% The size:
-minimum width=28mm,
-% The border:
-thin, draw,
-},
-      decoration = {snake,   % <-- added
-                    pre length=1pt,post length=1pt,% <-- for better looking of arrow,
-                    },
-                    main matrix/.style = {circle,draw,fill=#1,},
-]
-  \draw[step=2mm] (-7,-1) grid (7,2);
-  \node                                 (I) at (0, 0)          {Instruction $\mathbf{I}$};
-  \node[matrix]                         (M) at (0, 6)          {Memory $\mathbf{M}$};
-  \node[matrix]                         (rolled) at (0, 12)    {Memory $\mathbf{M}$};
-  \node[vector]                         (B) at (0, 18)         {$\mathbf{B}$};
-  \node[]                               (samples) at (0, 21.5) {};
-  \draw[step=2mm] (-7,21) grid (7,22);
-
-  \draw[->] (-7,14.5) -> (7,14.5);
-  \draw[->] (7,15) -> (-7,15);
-
-  \draw[->] (I)      -> node[right] {\tiny embed}             (M);
-  \draw[->] (M)      -> node[right] {\tiny roll}              (rolled);
-  \draw[->] (rolled) -> node[right] {\tiny Bidirectional GRU} (B);
-  \draw[->] (B)      -> node[right] {\tiny sample}            (samples);
-
-
-\end{tikzpicture}
-  \end{subfigure}
-  \begin{subfigure}{.55\columnwidth}
-    \centering
-\begin{tikzpicture}[x=2mm,y=2mm,
-    bin/.style={
-% The shape:
-rectangle,
-% The size:
-minimum height=8mm,
-% The border:
-thin, draw,
-},
-    weight/.style={
-% The shape:
-rectangle,
-% The size:
-minimum height=1mm,
-% The border:
-thin, draw,
-},
-    weights/.style={
-% The shape:
-rectangle,
-% The size:
-minimum height=1mm,
-minimum width=28mm,
-% The border:
-thin, draw,
-},
-    memory/.style={
-% The shape:
-rectangle,
-% The size:
-minimum height=8mm,
-minimum width=28mm,
-% The border:
-thin, draw,
-},
-      decoration = {snake,   % <-- added
-                    pre length=1pt,post length=1pt,% <-- for better looking of arrow,
-                    },
-                    main node/.style = {circle,draw,fill=#1,},
-]
-  \node[memory]                         (M) at (0, 2) {$\mathbf{M}$};
-  \node[memory]                         (P) at (5, 22) {$\mathbf{P}$};
-  \node at (-3, -1) {$p_t$};
-  \node[bin]                            (Mp) at (-3, 2) {};
-  \node[minimum size=1cm, draw,circle]  (x) at (14, 2) {Obs $\mathbf{x}_t$};
-  \node[draw,circle,minimum size=1cm]   (GRU) at (5, 10) {GRU};
-  \fill [black!5]                      (-1,16) rectangle (0.5,18);
-  \fill [black!10]                      (0.5,16) rectangle (2,18);
-  \fill [black!20]                      (2,16) rectangle (3.5,18);
-  \fill [black!10]                      (3.5,16) rectangle (5,18);
-  \fill [black!5]                      (5,16) rectangle (6.5,18);
-  \draw [decorate,decoration={brace}]
-  (-2,18.5) -- (12,18.5) node[midway,yshift=2mm]{\tiny softmax};
-  \node[weights]                        (u) at (5, 17) {$\mathbf{u}_t$};
-  \node                                 (p1) at (5, 30) {delta $d_{t}$};
-  %\node                                 (cat) at (15, 30)
-  %{$\Cat\left(\mathbf{P}\tilde{\mathbf{u}}_t\right)$};
-
-  \draw [decorate,decoration={brace}]
-  (-2,24.5) -- (12,24.5) node[midway,yshift=2mm]{};
-  \node   (weighted-sum) at (5, 25.5) {\tiny weighted-sum};
-
-  \draw [->] (Mp)          to [out=90,in=225] (GRU);
-  \draw [->] (x)          to [out=90,in=315] (GRU);
-  \draw [->] (GRU) to [out=90,in=270] (u);
-  \draw [->] (GRU) edge[loop right] node {$\mathbf{h}_t$} (h);
-  %\draw[->] (weighted-sum) -> (cat);
-  \draw[->] (weighted-sum) -> node[right] {\tiny sample} (p1);
-
-\end{tikzpicture}
-\end{subfigure}
-\end{figure}
-
 \subsection{Internal memory pointer}
 \label{internal-memory-pointer}
 As in \cite{oh2017zero}, given a $K$-length instruction and hidden size $H$, the architecture generates a learned instruction memory
@@ -510,6 +382,196 @@ relative to the current active line in memory. That is, $\mathbf{B}_{i}$ in
 equation \ref{P} refers to the row of $\mathbf{B}$ corresponding to the $(p_t +
 i)^{\text{th}}$ index of $\mathbf{M}$ .
 
+\begin{figure}[t]
+  \centering
+  \begin{subfigure}{.50\columnwidth}
+    \centering
+\begin{tikzpicture}[x=2mm,y=2mm,
+    bin/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=8mm,
+% The border:
+thin, draw,
+},
+    weight/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=1mm,
+% The border:
+thin, draw,
+},
+    weights/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=1mm,
+minimum width=24mm,
+% The border:
+thin, draw,
+},
+    memory/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=8mm,
+minimum width=24mm,
+% The border:
+thin, draw,
+},
+      decoration = {snake,   % <-- added
+                    pre length=1pt,post length=1pt,% <-- for better looking of arrow,
+                    },
+                    main node/.style = {circle,draw,fill=#1,},
+]
+  \node[memory,label={[xshift=-19.0mm]right:Memory $\mathbf{M}$}]
+    (M) at (-3, 2) {};
+  \node[memory]                         (P) at (0, 22) {$\mathbf{P}$};
+  \node at (-7, -1) {$p_t$};
+  \node[bin]                            (Mp) at (-7, 2) {};
+  \node[minimum size=1cm, draw,circle]  (x) at (6, 2) {$\mathbf{x}_t$};
+  \node[draw,circle,minimum size=1cm]   (GRU) at (0, 10) {GRU};
+  \fill [black!5]                      (-1,16) rectangle (-4.5,18);
+  \fill [black!10]                      (0.5,16) rectangle (-3,18);
+  \fill [black!20]                      (2,16) rectangle (-1.5,18);
+  \fill [black!10]                      (3.5,16) rectangle (0,18);
+  \fill [black!5]                      (5,16) rectangle (1.5,18);
+  \draw [decorate,decoration={brace}]
+  (-6,18.5) -- (6,18.5) node[midway,yshift=2mm]{\tiny softmax};
+  \node[weights]                        (u) at (0, 17) {$\mathbf{u}_t$};
+  \node                                 (p1) at (0, 30) {$d_{t}$};
+  %\node                                 (cat) at (15, 30)
+  %{$\Cat\left(\mathbf{P}\tilde{\mathbf{u}}_t\right)$};
+
+  \draw [decorate,decoration={brace}]
+  (-6,24.5) -- (6,24.5) node[midway,yshift=2mm]{};
+  \node   (weighted-sum) at (0, 25.5) {\tiny weighted-sum};
+
+  \draw [->] (Mp)          to [out=90,in=225] (GRU);
+  \draw [->] (x)          to [out=90,in=315] (GRU);
+  \draw [->] (GRU) to [out=90,in=270] (u);
+  \draw [->] (GRU) edge[loop right] node {$\mathbf{h}_t$} (h);
+  %\draw[->] (weighted-sum) -> (cat);
+  \draw[->] (weighted-sum) -> node[right] {\tiny sample} (p1);
+
+\end{tikzpicture}
+\caption{Diagram of the part of the architecture that maps the
+observation $\mathbf{x}_t$ and current memory pointer $p_t$ to the pointer delta
+$d_t$. Note that $p_{t+1} = p_t + d_t$.}
+\end{subfigure}
+\hfill
+  \begin{subfigure}{.44\columnwidth}
+    \centering
+\begin{tikzpicture}[x=0.5mm,y=0.5mm,
+    bit/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=.1mm,
+minimum width=.1mm,
+fill=black
+},
+    bin/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=8mm,
+minimum width=3.5mm,
+},
+    matrix/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=8mm,
+minimum width=28mm,
+% The border:
+thin, draw,
+},
+    vector/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=5mm,
+minimum width=28mm,
+% The border:
+thin, draw,
+},
+      decoration = {snake,   % <-- added
+                    pre length=1pt,post length=1pt,% <-- for better looking of arrow,
+                    },
+                    main matrix/.style = {circle,draw,fill=#1,},
+]
+  \fill[black!10] (-24,67) rectangle (-20,77);
+  \fill[black!30] (-20,67) rectangle (-16,77);
+  \fill[black!60] (-16,67) rectangle (-12,77);
+  \fill[black!80] (-12,67) rectangle (-8,77);
+  \fill[black!30] (-8,67) rectangle (-4,77);
+  \fill[black!20] (-4,67) rectangle (0,77);
+  \fill[black!40] (0,67) rectangle (4,77);
+  \fill[black!15] (4,67) rectangle (8,77);
+  \fill[black!10] (12,67) rectangle (16,77);
+  \fill[black!30] (16,67) rectangle (20,77);
+  \fill[black!70] (20,67) rectangle (24,77);
+  \fill[black!40] (24,67) rectangle (28,77);
+
+  \node[bin,opacity=.3,fill=cyan]  at (-24.7, 24) {};
+  \node[bin,opacity=.3,fill=green]   at (-17.7, 24) {};
+  \node[bin,opacity=.3,fill=yellow]    at (-10.7, 24) {};
+  \node[bin,opacity=.3,fill=orange] at (-3.7, 24)  {};
+  \node[bin,opacity=.3,fill=red]   at (3.3, 24)   {};
+  \node[bin,opacity=.3,fill=purple]    at (10.3, 24)  {};
+  \node[bin,opacity=.3,fill=violet]  at (17.3, 24)  {};
+  \node[bin,opacity=.3,fill=blue] at (24.3, 24)  {};
+
+  \node[bin,opacity=.3,fill=yellow]    at (-24.7,48) {};
+  \node[bin,opacity=.3,fill=orange] at (-17.7,48) {};
+  \node[bin,opacity=.3,fill=red]   at (-10.7,48) {};
+  \node[bin,opacity=.3,fill=purple]    at (-3.7,48)  {};
+  \node[bin,opacity=.3,fill=violet]  at (3.3,48)   {};
+  \node[bin,opacity=.3,fill=blue] at (10.3,48)  {};
+  \node[bin,opacity=.3,fill=cyan]  at (17.3,48)  {};
+  \node[bin,opacity=.3,fill=green]   at (24.3,48)  {};
+
+  %\draw[step=2mm] (-28.1,-4.1) grid (28.1,8.1);
+  \node[matrix]                                 (I) at (0, 0)          {Instruction $\mathbf{I}$};
+  %\node                                 () at (0, -10)         {Instruction $\mathbf{I}$};
+  \node[matrix]                         (M) at (0, 24)         {$\mathbf{M}$};
+  \node[matrix]                         (rolled) at (0, 48)    {$\mathbf{M}$};
+  \node[vector]                         (B) at (0, 72)         {$\mathbf{B}$};
+  \node[]                               (samples) at (0, 86) {};
+  \draw[step=2mm] (-28.1,84) grid (28.1,88);
+
+  \fill[black] (-8,84) rectangle (-12,88);
+  \fill[black] (0,84) rectangle (4,88);
+  \fill[black] (20,84) rectangle (24,88);
+
+  \node[]                               (samples) at (0, 86) {};
+  \draw[step=2mm] (-28.1,96) grid (28.1,100);
+  \fill[black] (-8,96) rectangle (-12,100);
+  \node[]                               (samples1) at (0, 86) {};
+  \node[]                               (sample) at (0, 98) {};
+  \node[]                               () at (-10, 104) {$d_t$};
+  %\draw[->] (-28,104) -> (-14,104);
+
+
+  \draw[->] (-28,58) -> (28,58);
+  \draw[->] (28,60) -> (-28,60);
+
+  \draw[->] (I)      -> node[right] {\tiny embed}             (M);
+  \draw[->] (M)      -> node[right] {\tiny roll}              (rolled);
+  \draw[->] (rolled) -> node[right,yshift=1mm] {\tiny Bidirectional GRU} (B);
+  \draw[->] (B)      -> node[right] {\tiny sample}            (samples);
+  %\draw[->] (samples1)      -> node[right] {\tiny sample}            (sample);
+\end{tikzpicture}
+\caption{Architecture for mapping instruction $\mathbf{I}$ to encoded
+instruction $\mathbf{M}$ and intuitive explanation of distribution from which
+$d_t$ is sampled. Note that $\mathbf{P}$ contains $\ell$ such distributions and
+$\tilde{\mathbf{u}}_t$ chooses among them.}
+  \end{subfigure}
+\end{figure}
+
 \algo{Subtask update}{
     \STATE $\mathbf{M}^{p_t} \gets \roll\left(\mathbf{M}, -p_t\right)$
     %\COMMENT{roll function rotates $\mathbf{M}$ around first
@@ -520,7 +582,7 @@ i)^{\text{th}}$ index of $\mathbf{M}$ .
     %\COMMENT{$\mathbf{P}_t$ comprises $\ell$ $2K$-dimensional probability
     %distributions}
 }{}{}
-\begin{algorithm}[tb]
+\begin{algorithm}[b]
   \caption{Scan Function}
   \label{scan}
   \begin{algorithmic}[1]
