@@ -14,6 +14,12 @@
 \usepackage{algorithm,float}
 \usepackage{lipsum}
 
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{snakes}
+
+\tikzset{snake it/.style={decorate, decoration=snake}}
+
 \lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
 \lstset{framextopmargin=50pt} % ,frame=bottomline}
 
@@ -29,14 +35,14 @@
   \setcounter{ALC@line}{\numexpr#1-1}}
 
 \newcommand{\algo}[3][
-    \STATE $V_t, \mathbf{u}_t, \mathbf{h}_t  \gets \GRU{\mathbf{x}_t, \mathbf{M}_{p_t}, \mathbf{h}_{t-1}}$
+    \STATE $V_t, \mathbf{u}_t, \mathbf{h}_t  \gets \GRU\left(\mathbf{x}_t, \mathbf{M}_{p_t}, \mathbf{h}_{t-1}\right)$
     %\COMMENT{
       %$\mathbf{\pi}_t \in \mathbb{R}^\mathcal{A}$. $V_t$ is the current value
     %estimate. $\mathbf{u}_t\in \mathbb{R}^w$.}
     \STATE $\mathbf{g}_{t} \sim \pi_\theta\left(\mathbf{h}_t\right)$
     %\COMMENT{$\mathbf{g}_t$ is the current action}
     \STATE $\tilde{\mathbf{u}}_{t} \gets \softmax\left(\mathbf{u}_t\right)$
-    \STATE $d_{t} \sim \Cat\left(\mathbf{W}_t\tilde{\mathbf{u}}_t\right)$ 
+    \STATE $d_{t} \sim \Cat\left(\mathbf{P}_t\tilde{\mathbf{u}}_t\right)$ 
     \STATE $p_{t + 1} \gets p_t + d_t$
 ]
 {
@@ -289,12 +295,82 @@ key insights:
 
 \begin{figure}[t]
   \centering
+  \begin{subfigure}{.4\columnwidth}
+    \centering
 \begin{tikzpicture}[x=2mm,y=2mm,
     bin/.style={
 % The shape:
 rectangle,
 % The size:
-minimum height=4mm,
+minimum height=8mm,
+minimum width=7mm,
+},
+    matrix/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=8mm,
+minimum width=28mm,
+% The border:
+thin, draw,
+},
+    vector/.style={
+% The shape:
+rectangle,
+% The size:
+minimum width=28mm,
+% The border:
+thin, draw,
+},
+      decoration = {snake,   % <-- added
+                    pre length=1pt,post length=1pt,% <-- for better looking of arrow,
+                    },
+                    main matrix/.style = {circle,draw,fill=#1,},
+]
+  \draw[step=2mm] (-7,-1) grid (7,2);
+  \node                                 (I) at (0, 0)          {Instruction $\mathbf{I}$};
+  \node[matrix]                         (M) at (0, 6)          {Memory $\mathbf{M}$};
+  \node[matrix]                         (rolled) at (0, 12)    {Memory $\mathbf{M}$};
+  \node[vector]                         (B) at (0, 18)         {$\mathbf{B}$};
+  \node[]                               (samples) at (0, 21.5) {};
+  \draw[step=2mm] (-7,21) grid (7,22);
+
+  \draw[->] (-7,14.5) -> (7,14.5);
+  \draw[->] (7,15) -> (-7,15);
+
+  \draw[->] (I)      -> node[right] {\tiny embed}             (M);
+  \draw[->] (M)      -> node[right] {\tiny roll}              (rolled);
+  \draw[->] (rolled) -> node[right] {\tiny Bidirectional GRU} (B);
+  \draw[->] (B)      -> node[right] {\tiny sample}            (samples);
+
+
+\end{tikzpicture}
+  \end{subfigure}
+  \begin{subfigure}{.55\columnwidth}
+    \centering
+\begin{tikzpicture}[x=2mm,y=2mm,
+    bin/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=8mm,
+% The border:
+thin, draw,
+},
+    weight/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=1mm,
+% The border:
+thin, draw,
+},
+    weights/.style={
+% The shape:
+rectangle,
+% The size:
+minimum height=1mm,
+minimum width=28mm,
 % The border:
 thin, draw,
 },
@@ -303,26 +379,48 @@ thin, draw,
 rectangle,
 % The size:
 minimum height=8mm,
-minimum width=24mm,
+minimum width=28mm,
 % The border:
 thin, draw,
-}]
-  \node[memory]                         (M) at (10, 2) {$\mathbf{M}$};
-  \node[memory]                         (K) at (12, 20) {$\mathbf{K}$};
-  \node at (7, -1) {$p_t$};
-  \node[bin]                            (g) at (7, 2) {$\mathbf{g}_t$};
-  \node[minimum size=16mm, draw,circle] (x) at (24, 2 {$\mathbf{x}_t$};
-  \node[circle,draw]                    (controller) at (15, 10) {Controller};
-  \node[bin]                            (k) at (15, 20) {$\mathbf{k}_t$};
-  \node                                 (q) at (15, 17) {$q_t$};
-  \node                                 (p1) at (15, 27) {$p_{t+1}$};
+},
+      decoration = {snake,   % <-- added
+                    pre length=1pt,post length=1pt,% <-- for better looking of arrow,
+                    },
+                    main node/.style = {circle,draw,fill=#1,},
+]
+  \node[memory]                         (M) at (0, 2) {$\mathbf{M}$};
+  \node[memory]                         (P) at (5, 22) {$\mathbf{P}$};
+  \node at (-3, -1) {$p_t$};
+  \node[bin]                            (Mp) at (-3, 2) {};
+  \node[minimum size=1cm, draw,circle]  (x) at (14, 2) {Obs $\mathbf{x}_t$};
+  \node[draw,circle,minimum size=1cm]   (GRU) at (5, 10) {GRU};
+  \fill [black!5]                      (-1,16) rectangle (0.5,18);
+  \fill [black!10]                      (0.5,16) rectangle (2,18);
+  \fill [black!20]                      (2,16) rectangle (3.5,18);
+  \fill [black!10]                      (3.5,16) rectangle (5,18);
+  \fill [black!5]                      (5,16) rectangle (6.5,18);
+  \draw [decorate,decoration={brace}]
+  (-2,18.5) -- (12,18.5) node[midway,yshift=2mm]{\tiny softmax};
+  \node[weights]                        (u) at (5, 17) {$\mathbf{u}_t$};
+  \node                                 (p1) at (5, 30) {delta $d_{t}$};
+  %\node                                 (cat) at (15, 30)
+  %{$\Cat\left(\mathbf{P}\tilde{\mathbf{u}}_t\right)$};
 
-  \draw [->] (g)          to [out=90,in=225] (controller);
-  \draw [->] (x)          to [out=90,in=315] (controller);
-  \draw [->] (controller) to [out=90,in=270] (q);
-  \draw [->] (k) to                          (p1);
+  \draw [decorate,decoration={brace}]
+  (-2,24.5) -- (12,24.5) node[midway,yshift=2mm]{};
+  \node   (weighted-sum) at (5, 25.5) {\tiny weighted-sum};
+
+  \draw [->] (Mp)          to [out=90,in=225] (GRU);
+  \draw [->] (x)          to [out=90,in=315] (GRU);
+  \draw [->] (GRU) to [out=90,in=270] (u);
+  \draw [->] (GRU) edge[loop right] node {$\mathbf{h}_t$} (h);
+  %\draw[->] (weighted-sum) -> (cat);
+  \draw[->] (weighted-sum) -> node[right] {\tiny sample} (p1);
+
 \end{tikzpicture}
+\end{subfigure}
 \end{figure}
+
 \subsection{Internal memory pointer}
 \label{internal-memory-pointer}
 As in \cite{oh2017zero}, given a $K$-length instruction and hidden size $H$, the architecture generates a learned instruction memory
@@ -437,7 +535,7 @@ $\mathbf{H} \in \mathbb{R}^{2K \times H}$
 %\COMMENT{This expression ensures the columns of $\mathbf{W} \in
 %\mathbb{R}^{2n}$.}
 \ENDFOR
-\STATE return $\mathbf{W}$
+\STATE return $\mathbf{P}$
   \end{algorithmic}
 \end{algorithm}
 
