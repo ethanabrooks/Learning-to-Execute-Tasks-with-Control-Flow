@@ -493,7 +493,7 @@ thin, draw,
 % The shape:
 rectangle,
 % The size:
-minimum height=5mm,
+minimum height=1mm,
 minimum width=28mm,
 % The border:
 thin, draw,
@@ -553,7 +553,7 @@ thin, draw,
   \node[]                               (samples1) at (0, 86) {};
   \node[]                               (sample) at (0, 98) {};
   \node[]                               () at (-10, 104) {$d_t$};
-  %\draw[->] (-28,104) -> (-14,104);
+  \draw[->] (-28,104) -> node[above] {\tiny choose first} (-14,104);
 
 
   \draw[->] (-28,58) -> (28,58);
@@ -655,7 +655,7 @@ is randomly 1 or 0, with 50\% probability. If the condition bit is 1,
 In this setting, the agent dictates subtask parameters to a pretrained
 lower-level agent who executes them. Thus subtasks may take several time-steps to
 complete. Moreover, conditions are parameterized by \textit{objects} and they
-are evaluated according whether the object exists. For example, the statement
+are evaluated according to whether the object exists. For example, the statement
 \texttt{If cat} evaluates to true, if there is a cat somewhere in the
 environment, and false otherwise.
 
