@@ -193,10 +193,6 @@ mastering instructions up to a certain length. Moreover, these architectures do 
 generalize at all to instructions longer than those in the training set. This paper presents a novel architecture capable of generalizing
 to instructions multiple times the length of the longest training instructions.
 
-\section{Related Work}
-Todo.
-\section{Problem Formulation}
-
 \begin{figure}[t]
   \centering
   \begin{subfigure}{.2\columnwidth}
@@ -231,6 +227,29 @@ Todo.
   \hfill
   \caption{Example instruction with environment}
 \end{figure}
+
+
+\section{Related Work}
+\subsection{Instructional tasks}
+Our work builds heavily on the work of \cite{oh2017zero}. That work considered
+only sequential subtasks and did not address branching conditions. Recent work,
+namely \cite{sun2020program} considers tasks with branching statements similar
+to this work but assumes the existence of a pretrained parser, and uses
+supervised learning to learn to evaluate conditions, which requires either a
+dataset of observations and conditions with corresponding evaluations or a
+hand-engineered mechanism for assessing the ground-truth of conditional
+statements. \cite{sohn2018hierarchical} investigates tasks corresponding to a
+``subtask graph'' which encodes preconditions. Since a subtask may have multiple
+preconditions, with either all or at least one of them needing to be performed
+as prerequisites for certain other subtasks, this work is similar to ours in the
+sense of exploring non-linear subtask sequences. However, this work does not
+explicitly address the problem of conditionals or looping logic in tasks.
+\cite{zhang2018composable} considers tasks specified by ``attributes'' instead
+of subtasks, though the two are conceptually similar. Subtasks are ordered
+according to a learned transition function, which ends up resembling the
+prerequisites from \cite{sohn2018hierarchical}. 
+
+\section{Problem Formulation}
 
 In order to study the problem of instructions with complex control-flow, we
 study instructions based on a Domain Specific Language, similar to \cite{sun2020program}.
@@ -433,10 +452,10 @@ thin, draw,
   \draw[->] (B)      -> node[right] {\tiny sample}            (samples);
   %\draw[->] (samples1)      -> node[right] {\tiny sample}            (sample);
 \end{tikzpicture}
-\caption{Architecture for mapping instruction $\mathbf{I}$ to encoded
-instruction $\mathbf{M}$ and intuitive explanation of distribution from which
-$d_t$ is sampled. Note that $\mathbf{P}$ contains $\ell$ such distributions and
+\caption{\textbf{Generation of transition distributions:} Architecture for
+  mapping instruction $\mathbf{I}$ to pointer transition values $d_t$. Note that Note that $\mathbf{P}$ contains $\ell$ such distributions and
 $\tilde{\mathbf{u}}_t$ chooses among them.}
+  \label{schematic1}
   \end{subfigure}
 \hfill
   \begin{subfigure}{.3\textwidth}
@@ -514,7 +533,7 @@ thin, draw,
   \draw[->] (weighted-sum) -> node[right] {\tiny sample} (p1);
 
 \end{tikzpicture}
-\caption{Diagram of architecture that maps the
+\caption{\textbf{Schematic for our architecture:} Diagram of architecture that maps the
 observation $\mathbf{x}_t$ and current memory pointer $p_t$ to the pointer delta
 $d_t$. Note that $p_{t+1} = p_t + d_t$.}
 \end{subfigure}
@@ -725,6 +744,7 @@ number of lines is drawn unifomly at random from between one and this number).
 The $y$-axis depicts the average cumulative training reward averaged across 150
 parallel processes after 13 million gradient updates. This number was chosen by
 visually }
+\label{gru-rewards}
 \label{gru-results}
 \vskip -0.2in
 \end{figure}
@@ -736,8 +756,26 @@ To do
 To do
 
 \section{Conclusion}
-To do
+This work studies a special but important subset of multi-task reinforcement
+learning problems, namely instructions with complex control-flow. We consider
+problems of this nature an important stepping stone toward natural language
+instructions and toward agents capable of arbitrarily complex logic. We hope
+that future work will explore instructions that involve greater complexity,
+including conditionals with more complex predicates, higher-dimensional
+observations, and noisy natural-language inputs.
 
+\section{To do}
+\begin{itemize}
+  \item Write results section
+  \item Failure analysis
+  \item Improve figure \ref{schematic1}
+  \item fill out appendix
+  \item Add more related works
+  \item Add diagram of edge length performance.
+  \item Replace figure \ref{gru-rewards} once runs are complete
+  \item Add diagram of performance on 6x6 environment once runs are complete.
+  \item If time permits, add other baselines to single-step environment.
+\end{itemize}
 
 %\section{Electronic Submission}
 %\label{submission}
