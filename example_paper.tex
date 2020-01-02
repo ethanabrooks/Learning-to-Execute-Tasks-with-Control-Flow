@@ -295,9 +295,16 @@ a different way.
 
 
 \section{Approach}
-\textcolor{red}{As stated earlier, conventional recurrent architectures are capable of
-accomplishing the task described.} However, what sets our architecture apart is
-its capacity to generalize to larger instructions. Our architecture incorporates three
+\label{approach}
+Our goal in this research was not only to develop an architecture capable of
+mastering tasks corresponding to complex logical instructions but to generalize
+to longer tasks than those on which the agent was trained.
+In section \ref{experiments}, we present evidence that conventional architectures
+fail to master even the tasks in their training set once those tasks exceed a
+certain complexity.
+However, simpler architectures than ours do demonstrate strong training
+performance.  What sets our architecture apart is
+its ability to generalize to longer instructions. Our architecture incorporates three
 key insights:
 
 \begin{enumerate}
@@ -320,8 +327,8 @@ As in \cite{oh2017zero}, given a $K$-length instruction and hidden size $H$, the
 $\mathbf{M} \in \mathbb{R}^{K \times H}$ that encodes each instruction $\mathbf{I}$ 
 using ``Bag-of-words'' style
 encodings applied to each line. Each line is
-a list of words $\mathbf{l}_k = (w^k_1,\dots,w^k_{|\mathbf{l}_k|})$ and each instruction is
-a list of lines $\mathbf{I} = (\mathbf{l}_1,\dots,\mathbf{l}_{K})$. Note that a
+a list of words $\mathbf{l}_k = \left(w^k_1,\dots,w^k_{|\mathbf{l}_k|}\right)$ and each instruction is
+a list of lines $\mathbf{I} = \left(\mathbf{l}_1,\dots,\mathbf{l}_{K}\right)$. Note that a
 line may either correspond to a subtask or to a control-flow statement.
 In order to generate the instruction memory, each word is embedded and the
 embeddings are summed:
@@ -685,10 +692,13 @@ $\mathbf{H} \in \mathbb{R}^{2K \times H}$
     \caption{Evaluation on instructions of length 40}
   \end{subfigure}%
   \caption{Each graph demonstrates the capability of the agent to generalize to
-  longer instruction lengths on the minimal environment}
+  longer instruction lengths on the minimal environment. Details are provided in
+section \ref{results}.}
+  \label{minimal}
 \end{figure*}
 
 \section{Experiments}
+\label{experiments}
 In order to validate the effectiveness of our algorithm, we ran two sets of
 experiments in different environments. The first environment is minimal,
 intended only to test
@@ -737,6 +747,16 @@ environment, and false otherwise.
 \begin{figure}[t]
 \vskip 0.2in
 \centerline{\includegraphics[width=\columnwidth]{gru_rewards}}
+\caption{This graph compares the performance of our architecture with the
+baseline architectures on tasks twice as long as those trained (20 lines).
+Details are provided in section \ref{results}.}
+\label{complex}
+\vskip -0.2in
+\end{figure}
+
+\begin{figure}[t]
+\vskip 0.2in
+\centerline{\includegraphics[width=\columnwidth]{gru_rewards}}
 \caption{This graph depicts the degradation in \textit{training} performance of the minimal
 \textbf{No Pointer} baseline architecture on minimal environment. The $x$-axis
 depicts the maximum lines per instruction for each experiment (each episode the
@@ -745,14 +765,22 @@ The $y$-axis depicts the average cumulative training reward averaged across 150
 parallel processes after 13 million gradient updates. This number was chosen by
 visually }
 \label{gru-rewards}
-\label{gru-results}
 \vskip -0.2in
 \end{figure}
 
 \subsection{Results}
-To do
+\label{results}
+Figures \ref{minimal} and \ref{complex} compare the performance of our
+architecture with several baselines. 
+Each graph plots the rewards that these architectures achieved on \textit{longer
+length} instructions.
+ Note that all graphs depict the performance of agents trained on instructions with lengths drawn uniformly between 1 and 10. Thus
+the graphs measure the generalization capability of each architecture. Each
+line is the average reward achieved by 150 parallel processes over the course of
+200 steps of evaluation. The error bars represent five separate distinct random
+seeds ($150 \times 5$ total processes).
 
-\subsection{Failure Analysis}
+\subsection{Analysis}
 To do
 
 \section{Conclusion}
