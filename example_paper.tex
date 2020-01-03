@@ -14,7 +14,7 @@
 \usepackage{algorithm,float}
 \usepackage{lipsum}
 
-
+\usetikzlibrary{automata,positioning}
 \usetikzlibrary{decorations.pathreplacing}
 \usetikzlibrary{decorations.pathmorphing}
 \usetikzlibrary{snakes}
@@ -278,14 +278,6 @@ where an interaction corresponds to \textit{visit}, \textit{pickup}, or
 \textit{transform} and an object corresponds to \textit{cat}, \textit{pig},
 \textit{sheep}, or \textit{goat}.
 
-\begin{figure}[t]
-\vskip 0.2in
-\centerline{\includegraphics[width=\columnwidth]{grammar}}
-\caption{Grammar defining valid instructions}
-\label{grammer}
-\vskip -0.2in
-\end{figure}
-
 \subsection{Environment}
 In keeping with \cite{oh2017zero}, our environment consists of a gridworld in which
 objects (cat, pig, sheep, goat), are randomly placed. In order to perform a
@@ -293,66 +285,6 @@ subtask, the agent must navigate to the object, and perform the appropriate
 interaction (visit, pickup, or transform), which each affect the environment in
 a different way.
 
-
-\section{Approach}
-\label{approach}
-Our goal in this research was not only to develop an architecture capable of
-mastering tasks corresponding to complex logical instructions but to generalize
-to longer tasks than those on which the agent was trained.
-In section \ref{experiments}, we present evidence that conventional architectures
-fail to master even the tasks in their training set once those tasks exceed a
-certain complexity.
-However, simpler architectures than ours do demonstrate strong training
-performance.  What sets our architecture apart is
-its ability to generalize to longer instructions. Our architecture incorporates three
-key insights:
-
-\begin{enumerate}
-  \item \textbf{Internal memory pointer:} Borrowing from \cite{oh2017zero}, our architecture incorporates an
-    internal memory pointer that learns to track the agent's progress through
-    the larger instruction.
-  \item \textbf{Instruction Scanning:} When moving the internal memory pointer, the agent
-    chooses the next line by ``scanning'' a learned representation of the  instruction and
-    jumping to the next occurrence of some information in the learned
-    representation, instead of basing the choice of movement on
-    the length or direction of movement.
-  \item \textbf{Instruction Rolling:} Our agent shifts or ``rolls'' the learned representation of the instruction
-    specification so that the agent always chooses movements of the internal memory pointer
-    relative to the current active line.
-\end{enumerate}
-
-\subsection{Internal memory pointer}
-\label{internal-memory-pointer}
-As in \cite{oh2017zero}, given a $K$-length instruction and hidden size $H$, the architecture generates a learned instruction memory
-$\mathbf{M} \in \mathbb{R}^{K \times H}$ that encodes each instruction $\mathbf{I}$ 
-using ``Bag-of-words'' style
-encodings applied to each line. Each line is
-a list of words $\mathbf{l}_k = \left(w^k_1,\dots,w^k_{|\mathbf{l}_k|}\right)$ and each instruction is
-a list of lines $\mathbf{I} = \left(\mathbf{l}_1,\dots,\mathbf{l}_{K}\right)$. Note that a
-line may either correspond to a subtask or to a control-flow statement.
-In order to generate the instruction memory, each word is embedded and the
-embeddings are summed:
-\begin{equation}
-  \mathbf{M}_k = \sum_{i=1}^{|\mathbf{l}_k|} \phi\left(w^k_i\right)
-\end{equation}
-
-In \cite{oh2017zero}, the
-upper-level agent chooses 
-subtask parameters as a function of a weighted sum of these
-embeddings and learns a convolution operator 
-that smoothly shifts the attention of these weights left or right by at most one step.
-
-We modify this approach to the internal memory pointer by using hard instead of
-soft attention---that is, instead of maintaining a set of weights over all
-lines in the instruction, we maintain a single integer pointer $0 \le p_t < K$ 
-whose movements are sampled from a learned distribution. We found that this was beneficial, since a smooth shift might
-cause the pointer to split along different paths of a conditional statement.
-
-Moreover, because the next line in the instruction may not immediately follow or
-precede the current line, we found that it was beneficial to allow the agent to
-move the pointer greater distances than a single line. We therefore augment the
-possible action space for the internal pointer to include movements to all other
-lines in the instruction.
 
 \begin{figure*}[ht]
 \centering
@@ -397,18 +329,81 @@ thin, draw,
                     },
                     main matrix/.style = {circle,draw,fill=#1,},
 ]
-  \fill[black!10] (-24,67) rectangle (-20,77);
-  \fill[black!30] (-20,67) rectangle (-16,77);
-  \fill[black!60] (-16,67) rectangle (-12,77);
-  \fill[black!80] (-12,67) rectangle (-8,77);
-  \fill[black!30] (-8,67) rectangle (-4,77);
-  \fill[black!20] (-4,67) rectangle (0,77);
-  \fill[black!40] (0,67) rectangle (4,77);
-  \fill[black!15] (4,67) rectangle (8,77);
-  \fill[black!10] (12,67) rectangle (16,77);
-  \fill[black!30] (16,67) rectangle (20,77);
-  \fill[black!70] (20,67) rectangle (24,77);
-  \fill[black!40] (24,67) rectangle (28,77);
+  \draw [decorate,decoration={brace}]
+  (-30,67) -- (-30,77) node[midway,left,inner sep=.1ex,text
+    width=14mm,font=\tiny]{\tiny $\ell$ distributions};
+  \draw [decorate,decoration={brace}]
+    (-30,84) -- (-30,105) node[midway,left,inner sep=.1ex,text
+    width=14mm,font=\tiny]{example sampling from one of $\ell$
+  distributions};
+  \fill[black!70] (-28,67) rectangle (-24,69);
+  \fill[black!60] (-24,67) rectangle (-20,69);
+  \fill[black!10] (-20,67) rectangle (-16,69);
+  \fill[black!20] (-16,67) rectangle (-12,69);
+  \fill[black!40] (-12,67) rectangle (-8,69);
+  \fill[black!60] (-8,67) rectangle (-4,69);
+  \fill[black!30] (-4,67) rectangle (0,69);
+  \fill[black!10] (0,67) rectangle (4,69);
+  \fill[black!15] (4,67) rectangle (8,69);
+  \fill[black!10] (12,67) rectangle (16,69);
+  \fill[black!20] (16,67) rectangle (20,69);
+  \fill[black!30] (20,67) rectangle (24,69);
+  \fill[black!10] (24,67) rectangle (28,69);
+
+  \fill[black!10] (-28,69) rectangle (-24,71);
+  \fill[black!00] (-24,69) rectangle (-20,71);
+  \fill[black!10] (-20,69) rectangle (-16,71);
+  \fill[black!10] (-16,69) rectangle (-12,71);
+  \fill[black!10] (-12,69) rectangle (-8,71);
+  \fill[black!40] (-8,69) rectangle (-4,71);
+  \fill[black!20] (-4,69) rectangle (0,71);
+  \fill[black!10] (0,69) rectangle (4,71);
+  \fill[black!50] (4,69) rectangle (8,71);
+  \fill[black!40] (12,69) rectangle (16,71);
+  \fill[black!30] (16,69) rectangle (20,71);
+  \fill[black!20] (20,69) rectangle (24,71);
+  \fill[black!40] (24,69) rectangle (28,71);
+
+  \fill[black!30] (-28,71) rectangle (-24,73);
+  \fill[black!40] (-24,71) rectangle (-20,73);
+  \fill[black!30] (-20,71) rectangle (-16,73);
+  \fill[black!20] (-16,71) rectangle (-12,73);
+  \fill[black!10] (-12,71) rectangle (-8,73);
+  \fill[black!10] (-8,71) rectangle (-4,73);
+  \fill[black!20] (-4,71) rectangle (0,73);
+  \fill[black!30] (0,71) rectangle (4,73);
+  \fill[black!60] (4,71) rectangle (8,73);
+  \fill[black!40] (12,71) rectangle (16,73);
+  \fill[black!30] (16,71) rectangle (20,73);
+  \fill[black!20] (20,71) rectangle (24,73);
+  \fill[black!10] (24,71) rectangle (28,73);
+
+  \fill[black!40] (-28,73) rectangle (-24,75);
+  \fill[black!30] (-24,73) rectangle (-20,75);
+  \fill[black!20] (-20,73) rectangle (-16,75);
+  \fill[black!10] (-16,73) rectangle (-12,75);
+  \fill[black!10] (-12,73) rectangle (-8,75);
+  \fill[black!30] (-8,73) rectangle (-4,75);
+  \fill[black!40] (-4,73) rectangle (0,75);
+  \fill[black!50] (0,73) rectangle (4,75);
+  \fill[black!45] (4,73) rectangle (8,75);
+  \fill[black!30] (12,73) rectangle (16,75);
+  \fill[black!10] (16,73) rectangle (20,75);
+  \fill[black!10] (20,73) rectangle (24,75);
+  \fill[black!10] (24,73) rectangle (28,75);
+
+  \fill[black!10] (-24,75) rectangle (-20,77);
+  \fill[black!30] (-20,75) rectangle (-16,77);
+  \fill[black!60] (-16,75) rectangle (-12,77);
+  \fill[black!80] (-12,75) rectangle (-8,77);
+  \fill[black!30] (-8,75) rectangle (-4,77);
+  \fill[black!20] (-4,75) rectangle (0,77);
+  \fill[black!40] (0,75) rectangle (4,77);
+  \fill[black!15] (4,75) rectangle (8,77);
+  \fill[black!10] (12,75) rectangle (16,77);
+  \fill[black!30] (16,75) rectangle (20,77);
+  \fill[black!60] (20,75) rectangle (24,77);
+  \fill[black!40] (24,75) rectangle (28,77);
 
   \node[bin,opacity=.3,fill=cyan]  at (-24.7, 24) {};
   \node[bin,opacity=.3,fill=green]   at (-17.7, 24) {};
@@ -459,7 +454,7 @@ thin, draw,
   \draw[->] (B)      -> node[right] {\tiny sample}            (samples);
   %\draw[->] (samples1)      -> node[right] {\tiny sample}            (sample);
 \end{tikzpicture}
-\caption{\textbf{Generation of transition distributions:} Architecture for
+\caption{\textbf{Encoding of instructions:} Architecture for
   mapping instruction $\mathbf{I}$ to pointer transition values $d_t$. Note that Note that $\mathbf{P}$ contains $\ell$ such distributions and
 $\tilde{\mathbf{u}}_t$ chooses among them.}
   \label{schematic1}
@@ -540,9 +535,9 @@ thin, draw,
   \draw[->] (weighted-sum) -> node[right] {\tiny sample} (p1);
 
 \end{tikzpicture}
-\caption{\textbf{Schematic for our architecture:} Diagram of architecture that maps the
-observation $\mathbf{x}_t$ and current memory pointer $p_t$ to the pointer delta
-$d_t$. Note that $p_{t+1} = p_t + d_t$.}
+\caption{\textbf{Generation of subtask parameter $\mathbf{g}_t$ and pointer
+  delta $d_t$:} This architecture executes every time step in order to generate
+subtask parameters and move the internal memory pointer $p_t$. Note that $p_{t+1} = p_t + d_t$.}
 \end{subfigure}
 \hfill
 \begin{subfigure}{.3\textwidth}
@@ -588,6 +583,67 @@ thin, draw,
 \label{no-pointer}
 \end{subfigure}
 \end{figure*}
+
+
+\section{Approach}
+\label{approach}
+Our goal in this research was not only to develop an architecture capable of
+mastering tasks corresponding to complex logical instructions but to generalize
+to longer tasks than those on which the agent was trained.
+In section \ref{experiments}, we present evidence that conventional architectures
+fail to master even the tasks in their training set once those tasks exceed a
+certain complexity.
+However, simpler architectures than ours do demonstrate strong training
+performance.  What sets our architecture apart is
+its ability to generalize to longer instructions. Our architecture incorporates three
+key insights:
+
+\begin{enumerate}
+  \item \textbf{Internal memory pointer:} Borrowing from \cite{oh2017zero}, our architecture incorporates an
+    internal memory pointer that learns to track the agent's progress through
+    the larger instruction.
+  \item \textbf{Instruction Scanning:} When moving the internal memory pointer, the agent
+    chooses the next line by ``scanning'' a learned representation of the  instruction and
+    jumping to the next occurrence of some information in the learned
+    representation, instead of basing the choice of movement on
+    the length or direction of movement.
+  \item \textbf{Instruction Rolling:} Our agent shifts or ``rolls'' the learned representation of the instruction
+    specification so that the agent always chooses movements of the internal memory pointer
+    relative to the current active line.
+\end{enumerate}
+
+\subsection{Internal memory pointer}
+\label{internal-memory-pointer}
+As in \cite{oh2017zero}, given a $K$-length instruction and hidden size $H$, the architecture generates a learned instruction memory
+$\mathbf{M} \in \mathbb{R}^{K \times H}$ that encodes each instruction $\mathbf{I}$ 
+using ``Bag-of-words'' style
+encodings applied to each line. Each line is
+a list of words $\mathbf{l}_k = \left(w^k_1,\dots,w^k_{|\mathbf{l}_k|}\right)$ and each instruction is
+a list of lines $\mathbf{I} = \left(\mathbf{l}_1,\dots,\mathbf{l}_{K}\right)$. Note that a
+line may either correspond to a subtask or to a control-flow statement.
+In order to generate the instruction memory, each word is embedded and the
+embeddings are summed:
+\begin{equation}
+  \mathbf{M}_k = \sum_{i=1}^{|\mathbf{l}_k|} \phi\left(w^k_i\right)
+\end{equation}
+
+In \cite{oh2017zero}, the
+upper-level agent chooses 
+subtask parameters as a function of a weighted sum of these
+embeddings and learns a convolution operator 
+that smoothly shifts the attention of these weights left or right by at most one step.
+
+We modify this approach to the internal memory pointer by using hard instead of
+soft attention---that is, instead of maintaining a set of weights over all
+lines in the instruction, we maintain a single integer pointer $0 \le p_t < K$ 
+whose movements are sampled from a learned distribution. We found that this was beneficial, since a smooth shift might
+cause the pointer to split along different paths of a conditional statement.
+
+Moreover, because the next line in the instruction may not immediately follow or
+precede the current line, we found that it was beneficial to allow the agent to
+move the pointer greater distances than a single line. We therefore augment the
+possible action space for the internal pointer to include movements to all other
+lines in the instruction.
 
 \subsection{Instruction Scanning}\label{scanning}
 Each episode, our architecture generates a graph representation of the
@@ -691,11 +747,19 @@ $\mathbf{H} \in \mathbb{R}^{2K \times H}$
     \centerline{\includegraphics[trim=100 0 100 100, clip, width=\columnwidth]{figures/eval40}}
     \caption{Evaluation on instructions of length 40}
   \end{subfigure}%
-  \caption{Each graph demonstrates the capability of the agent to generalize to
-  longer instruction lengths on the minimal environment. Details are provided in
-section \ref{results}.}
+  \caption{This graph compares the performance of our architecture with the
+baseline architectures on the complex $6\times6$ environment.
+Details are provided in section \ref{results}.}
   \label{minimal}
 \end{figure*}
+
+%\begin{figure}[t]
+%\vskip 0.2in
+%\centerline{\includegraphics[width=\columnwidth]{grammar}}
+%\caption{Grammar defining valid instructions}
+%\label{grammer}
+%\vskip -0.2in
+%\end{figure}
 
 \section{Experiments}
 \label{experiments}
@@ -705,6 +769,27 @@ intended only to test
 the agent's capability to move the internal memory pointer through an instruction
 involving complex control flow. The second involves temporally-extended subtasks
 of the kind discussed earlier and non-trivial logical conditions.
+
+\begin{figure*}[th]
+  \centering
+  \begin{subfigure}{.5\textwidth}
+    \centering
+    \centerline{\includegraphics[
+    width=\columnwidth]{figures/complex-train}}
+    \caption{Training reward on instructions with lengths sampled uniformly
+    between 1 and 10}
+  \end{subfigure}%
+  \begin{subfigure}{.5\textwidth}
+    \centering
+    \centerline{\includegraphics[
+    width=\columnwidth]{figures/complex-eval}}
+    \caption{Evaluation reward on instructions of length 20}
+  \end{subfigure}%
+  \caption{These graphs depict performance on the complex $6\times6$ environment. Details are provided in
+section \ref{results}.}
+  \label{complex}
+\end{figure*}
+
 
 \subsection{Baselines}
 In our experiments, we ablate the main features of our algorithm in order to
@@ -739,34 +824,37 @@ is randomly 1 or 0, with 50\% probability. If the condition bit is 1,
 
 \subsection{Complex Environment}
 In this setting, the agent dictates subtask parameters to a pretrained
-lower-level agent who executes them. Thus subtasks may take several time-steps to
+lower-level agent who executes them. The environment is a $6\times 6$ grid world
+with randomly spawned objects. The lower-level agent must navigate to the object
+and perform the interaction (visit, pickup, or transform) corresponding to the
+subtask parameter chosen by the higher-level agent. Thus, subtasks may take several time-steps to
 complete. Moreover, conditions are parameterized by \textit{objects} and they
 are evaluated according to whether the object exists. For example, the statement
 \texttt{If cat} evaluates to true, if there is a cat somewhere in the
 environment, and false otherwise.
-\begin{figure}[t]
-\vskip 0.2in
-\centerline{\includegraphics[width=\columnwidth]{gru_rewards}}
-\caption{This graph compares the performance of our architecture with the
-baseline architectures on tasks twice as long as those trained (20 lines).
-Details are provided in section \ref{results}.}
-\label{complex}
-\vskip -0.2in
-\end{figure}
 
-\begin{figure}[t]
-\vskip 0.2in
-\centerline{\includegraphics[width=\columnwidth]{gru_rewards}}
-\caption{This graph depicts the degradation in \textit{training} performance of the minimal
-\textbf{No Pointer} baseline architecture on minimal environment. The $x$-axis
-depicts the maximum lines per instruction for each experiment (each episode the
-number of lines is drawn unifomly at random from between one and this number).
-The $y$-axis depicts the average cumulative training reward averaged across 150
-parallel processes after 13 million gradient updates. This number was chosen by
-visually }
-\label{gru-rewards}
-\vskip -0.2in
-\end{figure}
+%\begin{figure*}[t]
+  %\centering
+%%\vskip 0.2in
+%\begin{subfigure}
+  %\centering
+%\centerline{\includegraphics[width=\columnwidth]{complex-eval}}
+%\caption{This graph compares the performance of our architecture with the
+%baseline architectures on the complex environment with tasks twice as long as those trained (20 lines).
+%Details are provided in section \ref{results}.}
+%\label{complex}
+%\end{subfigure}
+%%\begin{subfigure}
+  %%\centering
+%%\centerline{\includegraphics[width=\columnwidth]{complex-train}}
+%%\caption{This graph compares the performance of our architecture with the
+%%baseline architectures on the complex environment with tasks twice as long as those trained (20 lines).
+%%Details are provided in section \ref{results}.}
+%%\label{complex}
+%%\end{subfigure}
+%%\vskip -0.2in
+%\end{figure*}
+
 
 \subsection{Results}
 \label{results}
@@ -794,14 +882,11 @@ observations, and noisy natural-language inputs.
 
 \section{To do}
 \begin{itemize}
-  \item Write results section
   \item Failure analysis
-  \item Improve figure \ref{schematic1}
+  \item Add description of gates.
   \item fill out appendix
   \item Add more related works
   \item Add diagram of edge length performance.
-  \item Replace figure \ref{gru-rewards} once runs are complete
-  \item Add diagram of performance on 6x6 environment once runs are complete.
   \item If time permits, add other baselines to single-step environment.
 \end{itemize}
 
