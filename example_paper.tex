@@ -162,6 +162,14 @@ Instructions}
   the environment. We present an algorithm capable not only of performing these
   instructions, but of zero-shot generalization to longer instructions.
 \end{abstract}
+
+%\begin{figure}[b]
+%\vskip 0.2in
+%\centerline{\includegraphics[width=\columnwidth]{grammar}}
+%\caption{Grammar defining valid instructions}
+%\label{grammer}
+%\vskip -0.2in
+%\end{figure}
 \section{Introduction}
 One important goal of reinforcement learning is to develop agents capable of
 executing complex instructions. Many different factors contribute to the
@@ -229,7 +237,6 @@ to instructions multiple times the length of the longest training instructions.
   \caption{Example instruction with environment}
 \vskip -0.6in
 \end{figure}
-
 
 \section{Related Work}
 \subsection{Instructional tasks}
@@ -577,7 +584,7 @@ a primitive action $\mathbf{a}_t \in \mathcal{A}$. Concisely:
 \end{align}
 
 \subsection{Instructions}
-Figure \ref{grammer} defines the grammar for instructions used in our domain.
+The grammar for instructions used in our domain is given in Appendix B.
 Intuitively, instructions consist of lists of statements, which are either subtasks,
 if-conditions, or while-loops. Subtasks consist of (interaction, object) pairs,
 where an interaction corresponds to \textit{visit}, \textit{pickup}, or
@@ -763,14 +770,6 @@ relative to the current active line in memory. That is, $\mathbf{B}_{i}$ in
 equation \ref{P} refers to the row of $\mathbf{B}$ corresponding to the $(p_t +
 i)^{\text{th}}$ index of $\mathbf{M}$ .
 
-%\begin{figure}[t]
-%\vskip 0.2in
-%\centerline{\includegraphics[width=\columnwidth]{grammar}}
-%\caption{Grammar defining valid instructions}
-%\label{grammer}
-%\vskip -0.2in
-%\end{figure}
-
 \section{Experiments}
 \label{experiments}
 In order to validate the effectiveness of our algorithm, we ran two sets of
@@ -778,7 +777,8 @@ experiments in different environments. The first environment is minimal,
 intended only to test
 the agent's capability to move the internal memory pointer through an instruction
 involving complex control flow. The second involves temporally-extended subtasks
-of the kind discussed earlier and non-trivial logical conditions.
+of the kind discussed earlier and non-trivial logical conditions. For all
+experiments the maximum possible reward is 1.
 
 \begin{figure*}[th]
   \centering

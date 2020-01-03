@@ -9,6 +9,8 @@
 \usepackage{amsmath, amsfonts}
 \usepackage{algorithm,float}
 \usepackage{lipsum}
+\usepackage{syntax}
+\pagestyle{empty}
 \usetikzlibrary{decorations.pathreplacing}
 \usetikzlibrary{decorations.pathmorphing}
 \usetikzlibrary{snakes}
@@ -93,6 +95,36 @@ Instructions}
 \maketitle
 \section{Pseudocode for baselines}
 to do 
+\section{Task grammar}
+\topskip0pt
+%\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
+\setlength{\grammarindent}{10em} % increase separation between LHS/RHS 
+\vspace*{\fill}
+
+\begin{grammar}
+
+<task> ::= \{ `,' <statement> \}
+
+<statement> ::= <subtask> | <while-statement> | <if-statement>
+
+<while-statement> ::= while <object> do <subtask-list>
+
+<if-statement> ::= <if-block> <else-block> | <if-block>
+
+<if-block> ::= if <object> do <subtask-list>
+
+<else-block> ::= else do <subtask-list>
+
+<subtask-list> ::= \{ `,' <subtask> \}
+
+<subtask> ::= <interaction> | <object>
+
+<interaction> ::= visit | pickup | transform
+
+<object> ::= cat | pig | sheep | goat
+
+\end{grammar}
+\vspace*{\fill}
 \section{Environment details}
 to do 
 \section{Training rewards}
