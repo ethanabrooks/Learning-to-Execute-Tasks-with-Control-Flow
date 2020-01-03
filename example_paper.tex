@@ -13,6 +13,9 @@
 \usepackage{amsmath, amsfonts}
 \usepackage{algorithm,float}
 \usepackage{lipsum}
+\usepackage{xr}
+
+\externaldocument{appendix}
 
 \usetikzlibrary{automata,positioning}
 \usetikzlibrary{decorations.pathreplacing}
@@ -163,13 +166,6 @@ Instructions}
   instructions, but of zero-shot generalization to longer instructions.
 \end{abstract}
 
-%\begin{figure}[b]
-%\vskip 0.2in
-%\centerline{\includegraphics[width=\columnwidth]{grammar}}
-%\caption{Grammar defining valid instructions}
-%\label{grammer}
-%\vskip -0.2in
-%\end{figure}
 \section{Introduction}
 One important goal of reinforcement learning is to develop agents capable of
 executing complex instructions. Many different factors contribute to the
@@ -304,11 +300,11 @@ thin, draw,
 ]
   \draw [decorate,decoration={brace}]
   (-30,67) -- (-30,77) node[midway,left,inner sep=.1ex,text
-    width=14mm,font=\tiny]{\tiny $\ell$ distributions};
+    width=14mm,font=\tiny]{\tiny $\ell \times K$ Bernoulli distributions};
   \draw [decorate,decoration={brace}]
     (-30,84) -- (-30,105) node[midway,left,inner sep=.1ex,text
     width=14mm,font=\tiny]{example sampling from one of $\ell$
-  distributions};
+  edge distributions};
   \fill[black!70] (-28,67) rectangle (-24,69);
   \fill[black!60] (-24,67) rectangle (-20,69);
   \fill[black!10] (-20,67) rectangle (-16,69);
@@ -565,18 +561,18 @@ thin, draw,
 \section{Problem Formulation}
 
 In order to study the problem of instructions with complex control-flow, we
-study instructions based on a Domain Specific Language, similar to \cite{sun2020program}.
+study use a Domain Specific Language, similar to \cite{sun2020program}.
 At the beginning of an episode our agent observes a numerical representation of
-the instruction $\mathcal{G}$. Each time-step the agent also receives an observation of the
-environment $\mathcal{O}$. 
+the instruction $\mathbf{I} \in\mathcal{I}$. Each time-step the agent also receives an observation of the
+environment $\mathbf{x}_t \in\mathcal{O}$. 
 
 We also assume a pretrained lower-level agent that will perform whatever subtask our
 upper-level agent gives to it. Each time step $t$, the policy $\pi_\theta$ of the upper-level agent
-maps an instruction
-$\mathbf{I}\in\mathcal{I}$ and
-an observation $\mathbf{x}_t \in\mathcal{O}$ to a discrete subtask parameter
+maps the instruction
+$\mathbf{I}$ and
+observation $\mathbf{x}_t$ to a discrete subtask parameter
 $\mathbf{g}_t \in\mathcal{G}$ and the
-pretrained lower-level policy $\pi'$ maps the subtask parameter and the observation to
+pretrained lower-level policy $\pi'$ maps the subtask parameter and observation to
 a primitive action $\mathbf{a}_t \in \mathcal{A}$. Concisely:
 \begin{align}
   \pi_\theta&: \mathcal{I} \times \mathcal{O} \to \mathcal{G} \\
@@ -584,7 +580,8 @@ a primitive action $\mathbf{a}_t \in \mathcal{A}$. Concisely:
 \end{align}
 
 \subsection{Instructions}
-The grammar for instructions used in our domain is given in Appendix B.
+The grammar for instructions used in our domain is given in Appendix
+\ref{grammar}.
 Intuitively, instructions consist of lists of statements, which are either subtasks,
 if-conditions, or while-loops. Subtasks consist of (interaction, object) pairs,
 where an interaction corresponds to \textit{visit}, \textit{pickup}, or
@@ -593,10 +590,16 @@ where an interaction corresponds to \textit{visit}, \textit{pickup}, or
 
 \subsection{Environment}
 In keeping with \cite{oh2017zero}, our environment consists of a gridworld in which
-objects (cat, pig, sheep, goat), are randomly placed. In order to perform a
+objects spawn randomly at the beginning of an episode. In order to perform a
 subtask, the agent must navigate to the object, and perform the appropriate
 interaction (visit, pickup, or transform), which each affect the environment in
-a different way.
+a different way:
+\begin{itemize}
+  \item \textit{Pickup} makes the object disappear. 
+  \item \textit{Transform} transfors the object into a special \textit{ice}
+    object.
+  \item \textit{Visit} leaves the object unchanged.
+\end{itemize}
 
 
 
@@ -658,10 +661,11 @@ key insights:
 
 \subsection{Internal memory pointer}
 \label{internal-memory-pointer}
-As in \cite{oh2017zero}, given a $K$-length instruction and hidden size $H$, the architecture generates a learned instruction memory
-$\mathbf{M} \in \mathbb{R}^{K \times H}$ that encodes each instruction $\mathbf{I}$ 
-using ``Bag-of-words'' style
-encodings applied to each line. Each line is
+As in \cite{oh2017zero}, given a $K$-length instruction $\mathbf{I}$ and hidden size $H$, the architecture generates a learned instruction memory
+$\mathbf{M}using ``Bag-of-words'' style
+encodings applied to each line.  \in \mathbb{R}^{K \times H}$ by applying ``Bag-of-words'' style
+encodings to each line of the instruction.
+Each line is
 a list of words $\mathbf{l}_k = \left(w^k_1,\dots,w^k_{|\mathbf{l}_k|}\right)$ and each instruction is
 a list of lines $\mathbf{I} = \left(\mathbf{l}_1,\dots,\mathbf{l}_{K}\right)$. Note that a
 line may either correspond to a subtask or to a control-flow statement.
@@ -689,43 +693,6 @@ move the pointer greater distances than a single line. We therefore augment the
 possible action space for the internal pointer to include movements to all other
 lines in the instruction.
 
-\subsection{Instruction Scanning}\label{scanning}
-Each episode, our architecture generates a graph representation of the
-instruction that allows the internal memory to navigate the instruction over the
-course of the episode.  From every line in the instruction, we produce
-$\ell$ outgoing edges which each correspond to a learned distribution over other lines
-in the instruction. To produce each distribution, we feed the embedded representation
-of the instruction $\mathbf{M}$ through a bidirectional GRU to produce a
-representation $\mathbf{H} \in \mathbb{R}^{2K \times H}$ of the instruction
-that incorporates local context information. The outputs of the GRU in both
-directions are projected to a vector $\mathbf{B} \in (0, 1)^{2K\times \ell
- }$ using a sigmoidal
-perceptron. Finally the equation for the distribution over next lines is
-\begin{equation}
-  \label{P}
-  \mathbf{P}_{ij} = \mathbf{B}_{ij}\prod_{k \in (1, -1, 2, -2, \dots)}\left(1 -
-  \mathbf{B}_{kj}\right)
-\end{equation}
-where $\mathbf{P} \in \mathbb{R}^{2K\times\ell }$. Intuitively, $\mathbf{P}$ is the distribution produced by
-sampling a Bernoulli distribution parameterized by $\mathbf{B}_k$ at each index
-$k$, concentrically moving away from the first index, and stopping at the first success.
-
-As in \cite{oh2017zero}, movements of the internal memory pointer are a learned
-function of the history of selections in memory, of actions and of observations.
-Concretely, we generate a hidden state by feeding all of these values each time
-step through a Gated Recurrent Network \cite{ChoMGBSB14}:
-\begin{equation}
-  \mathbf{h}_t = \GRU\left(f_\theta\left(\mathbf{x}_t\right),
-    \mathbf{M}_{p_{t-1}}, \mathbf{g}_{t-1},
-  \mathbf{h}_{t-1}\right)
-\end{equation}
-where $f_\theta$ is a convolutional neural network. Whereas \cite{oh2017zero}
-projects $\mathbf{h}_{t}$ to the one-step convolution operator described in
-section \ref{internal-memory-pointer}, we project $\mathbf{h}_t$ to $\mathbf{u}_t\in \mathbb{R}^\ell$, a weight vector
-used to choose among paths previously encoded from the instruction. Thus the final
-distribution over next lines is
-$\Cat(\mathbf{P}_{p_t}\tilde{\mathbf{u}}_t)$, where $\tilde{\mathbf{u}}_t =
-\softmax\left(\mathbf{u}_t\right)$.
 
 \begin{figure*}[th]
   \centering
@@ -751,8 +718,50 @@ Details are provided in section \ref{results}.}
   \label{minimal}
 \end{figure*}
 
+\subsection{Instruction Scanning}\label{scanning}
+Each episode, our architecture generates a graph representation of the
+instruction that allows the internal memory to navigate the instruction over the
+course of the episode.  From every line in the instruction, we produce
+$\ell$ outgoing edges which each correspond to a learned distribution over other lines
+in the instruction. To produce each distribution, we feed the embedded representation
+of the instruction $\mathbf{M}$ through a bidirectional GRU to produce a
+representation $\mathbf{H} \in \mathbb{R}^{2K \times H}$ 
+that incorporates local context information. The outputs of the GRU in both
+directions are projected to a vector $\mathbf{B} \in (0, 1)^{2K\times \ell
+ }$ using a sigmoidal
+perceptron. Finally the equation for the distribution over next lines is
+\begin{equation}
+  \label{P}
+  \mathbf{P}_{ij} = \mathbf{B}_{ij}\prod_{k \in (1, -1, 2, -2, \dots)}\left(1 -
+  \mathbf{B}_{kj}\right)
+\end{equation}
+where $\mathbf{P} \in \mathbb{R}^{2K\times\ell }$. Intuitively, $\mathbf{P}$ is the distribution produced by
+sampling a Bernoulli distribution parameterized by $\mathbf{B}_k$ at each index
+$k$, concentrically moving away from the first index, and stopping at the first success.
+As section \ref{rolling} will explain, the first index of $\mathbf{B}$ may
+correspond to an index other than the first for $\mathbf{I}$ and $\mathbf{M}$.
+
+As in \cite{oh2017zero}, movements of the internal memory pointer are a learned
+function of the history of selections in memory, of actions and of observations.
+Concretely, we generate a hidden state by feeding all of these values each time
+step through a Gated Recurrent Network \cite{ChoMGBSB14}:
+\begin{equation}
+  \mathbf{h}_t = \GRU\left(f_\theta\left(\mathbf{x}_t\right),
+    \mathbf{M}_{p_{t-1}}, \mathbf{g}_{t-1},
+  \mathbf{h}_{t-1}\right)
+\end{equation}
+where $f_\theta$ is a convolutional neural network. Whereas the
+\cite{oh2017zero} architecture
+projects $\mathbf{h}_{t}$ to the one-step convolution operator described in
+section \ref{internal-memory-pointer}, we project $\mathbf{h}_t$ to $\mathbf{u}_t\in \mathbb{R}^\ell$, a weight vector
+used to choose among paths previously encoded from the instruction. Thus the final
+distribution over next lines is
+$\Cat(\mathbf{P}_{p_t}\tilde{\mathbf{u}}_t)$, where $\tilde{\mathbf{u}}_t =
+\softmax\left(\mathbf{u}_t\right)$.
+
 
 \subsection{Instruction Rolling}
+\label{rolling}
 This feature takes advantage of the fact that the rules of control flow are
 invariant to the position of the current line in the instruction. ``Rolling'' here
 refers to a modular operation by which all elements in a tensor are shifted in
@@ -768,7 +777,7 @@ line, wrapping around the last line of the instruction, and returning to the lin
 before the current line. Thus the operations described in section \ref{scanning} are all performed
 relative to the current active line in memory. That is, $\mathbf{B}_{i}$ in
 equation \ref{P} refers to the row of $\mathbf{B}$ corresponding to the $(p_t +
-i)^{\text{th}}$ index of $\mathbf{M}$ .
+i)^{\text{th}}$ index of $\mathbf{M}$.
 
 \section{Experiments}
 \label{experiments}
@@ -801,6 +810,18 @@ section \ref{results}.}
   \label{complex}
 \end{figure*}
 
+\begin{figure}[t]
+\vskip 0.2in
+\centerline{\includegraphics[width=\columnwidth]{simple-rewards}}
+\caption{Training performance of the ``simple architecture'' on the minimal
+environment. Each line corresponds to the maximum number from which
+instruction line-lengthes were drawn. For example the 10 line corresponds to an
+agent trained on instructions whose length was sampled uniformly between 1 and
+10. Note that all agents trained on tasks with lengths greater than 5 fail to
+converge to the maximum possible reward of 1.}
+\label{grammer}
+\vskip -0.2in
+\end{figure}
 
 \subsection{Baselines}
 In our experiments, we ablate the main features of our algorithm in order to
@@ -811,7 +832,7 @@ test their effectiveness. We present five baselines:
     a distribution over possible forward and backward pointer movements.
     Movements that go beyond the beggining or end of the instruction are clipped.
   \item \textbf{No roll:} This baseline does not roll $\mathbf{M}$ before feeding
-    it to the bidirectional GRU.
+    it to the bidirectional GRU as described in section \ref{rolling}.
   \item \textbf{No roll or scan:} This baseline combines both ablations.
   \item \textbf{No pointer:} This baseline removes the internal memory pointer.
     Instead, it feeds a representation $\mathbf{H}'$ of the instruction
@@ -819,11 +840,15 @@ test their effectiveness. We present five baselines:
     which directly outputs a distribution over actions $\pi_\theta(\cdot)$ and a
     value $V_t$. We generate $\mathbf{H}'$ by feeding the embedded instruction
     $\mathbf{M}$ through a bidirectional GRU and concatenating the last outputs
-    in both directions. See figure \ref{no-pointer}.
+    in both directions. See figure \ref{no-pointer}. \footnote{Note that $\mathbf{M}$
+    must be fed through a bidirectional GRU before feeding to the controller,
+  because the controller requires fixed-length inputs. Padding is not a solution
+to this problem because the archicture would then have no hope of generalizing
+to longer unseen instructions.}
   \item \textbf{Oh et. al.} This baseline reproduces the algorithm described in
     \cite{oh2017zero}.
 \end{itemize}
- Psuedocode for all the baselines is also included in Appendix A.
+Psuedocode for all the baselines is also included in Appendix \ref{baselines}.
 
 \subsection{Minimal Environment}
 In the minimal setting, subtasks are not
@@ -844,37 +869,15 @@ are evaluated according to whether the object exists. For example, the statement
 \texttt{If cat} evaluates to true, if there is a cat somewhere in the
 environment, and false otherwise.
 
-%\begin{figure*}[t]
-  %\centering
-%%\vskip 0.2in
-%\begin{subfigure}
-  %\centering
-%\centerline{\includegraphics[width=\columnwidth]{complex-eval}}
-%\caption{This graph compares the performance of our architecture with the
-%baseline architectures on the complex environment with tasks twice as long as those trained (20 lines).
-%Details are provided in section \ref{results}.}
-%\label{complex}
-%\end{subfigure}
-%%\begin{subfigure}
-  %%\centering
-%%\centerline{\includegraphics[width=\columnwidth]{complex-train}}
-%%\caption{This graph compares the performance of our architecture with the
-%%baseline architectures on the complex environment with tasks twice as long as those trained (20 lines).
-%%Details are provided in section \ref{results}.}
-%%\label{complex}
-%%\end{subfigure}
-%%\vskip -0.2in
-%\end{figure*}
-
 
 \subsection{Results}
 \label{results}
 Figures \ref{minimal} and \ref{complex} compare the performance of our
 architecture with several baselines. 
-Each graph plots the rewards that these architectures achieved on \textit{longer
+Unless otherwise specified, each graph plots the rewards that these architectures achieved on \textit{longer
 length} instructions.
  Note that all graphs depict the performance of agents trained on instructions with lengths drawn uniformly between 1 and 10. Thus
-the graphs measure the generalization capability of each architecture. Each
+the graphs corresponding to longer instructions measure the generalization capability of each architecture. Each
 line is the average reward achieved by 150 parallel processes over the course of
 200 steps of evaluation. The error bars represent five separate distinct random
 seeds ($150 \times 5$ total processes).
