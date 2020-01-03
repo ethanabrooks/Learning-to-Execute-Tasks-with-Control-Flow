@@ -194,6 +194,7 @@ generalize at all to instructions longer than those in the training set. This pa
 to instructions multiple times the length of the longest training instructions.
 
 \begin{figure}[t]
+\vskip 0.2in
   \centering
   \begin{subfigure}{.2\columnwidth}
     \centering
@@ -226,6 +227,7 @@ to instructions multiple times the length of the longest training instructions.
   \end{subfigure}%
   \hfill
   \caption{Example instruction with environment}
+\vskip -0.6in
 \end{figure}
 
 
@@ -305,10 +307,11 @@ thin, draw,
   \fill[black!10] (-20,67) rectangle (-16,69);
   \fill[black!20] (-16,67) rectangle (-12,69);
   \fill[black!40] (-12,67) rectangle (-8,69);
-  \fill[black!60] (-8,67) rectangle (-4,69);
-  \fill[black!30] (-4,67) rectangle (0,69);
-  \fill[black!10] (0,67) rectangle (4,69);
-  \fill[black!15] (4,67) rectangle (8,69);
+  \fill[black!60] (-8,67)  rectangle (-4,69);
+  \fill[black!30] (-4,67)  rectangle (0,69);
+  \fill[black!10] (0,67)   rectangle (4,69);
+  \fill[black!15] (4,67)   rectangle (8,69);
+  \fill[black!10] (8,67)  rectangle (12,69);
   \fill[black!10] (12,67) rectangle (16,69);
   \fill[black!20] (16,67) rectangle (20,69);
   \fill[black!30] (20,67) rectangle (24,69);
@@ -319,73 +322,77 @@ thin, draw,
   \fill[black!10] (-20,69) rectangle (-16,71);
   \fill[black!10] (-16,69) rectangle (-12,71);
   \fill[black!10] (-12,69) rectangle (-8,71);
-  \fill[black!40] (-8,69) rectangle (-4,71);
-  \fill[black!20] (-4,69) rectangle (0,71);
-  \fill[black!10] (0,69) rectangle (4,71);
-  \fill[black!50] (4,69) rectangle (8,71);
-  \fill[black!40] (12,69) rectangle (16,71);
-  \fill[black!30] (16,69) rectangle (20,71);
-  \fill[black!20] (20,69) rectangle (24,71);
-  \fill[black!40] (24,69) rectangle (28,71);
+  \fill[black!40] (-8,69)  rectangle (-4,71);
+  \fill[black!20] (-4,69)  rectangle (0,71);
+  \fill[black!10] (0,69)   rectangle (4,71);
+  \fill[black!50] (4,69)   rectangle (8,71);
+  \fill[black!25] (8,69)   rectangle (12,71);
+  \fill[black!10] (12,69)  rectangle (16,71);
+  \fill[black!20] (16,69)  rectangle (20,71);
+  \fill[black!30] (20,69)  rectangle (24,71);
+  \fill[black!40] (24,69)  rectangle (28,71);
 
   \fill[black!30] (-28,71) rectangle (-24,73);
   \fill[black!40] (-24,71) rectangle (-20,73);
   \fill[black!30] (-20,71) rectangle (-16,73);
   \fill[black!20] (-16,71) rectangle (-12,73);
   \fill[black!10] (-12,71) rectangle (-8,73);
-  \fill[black!10] (-8,71) rectangle (-4,73);
-  \fill[black!20] (-4,71) rectangle (0,73);
-  \fill[black!30] (0,71) rectangle (4,73);
-  \fill[black!60] (4,71) rectangle (8,73);
-  \fill[black!40] (12,71) rectangle (16,73);
-  \fill[black!30] (16,71) rectangle (20,73);
-  \fill[black!20] (20,71) rectangle (24,73);
-  \fill[black!10] (24,71) rectangle (28,73);
+  \fill[black!10] (-8,71)  rectangle (-4,73);
+  \fill[black!20] (-4,71)  rectangle (0,73);
+  \fill[black!30] (0,71)   rectangle (4,73);
+  \fill[black!60] (4,71)   rectangle (8,73);
+  \fill[black!10] (8,71)   rectangle (12,73);
+  \fill[black!20] (12,71)  rectangle (16,73);
+  \fill[black!10] (16,71)  rectangle (20,73);
+  \fill[black!20] (20,71)  rectangle (24,73);
+  \fill[black!10] (24,71)  rectangle (28,73);
 
   \fill[black!40] (-28,73) rectangle (-24,75);
   \fill[black!30] (-24,73) rectangle (-20,75);
   \fill[black!20] (-20,73) rectangle (-16,75);
   \fill[black!10] (-16,73) rectangle (-12,75);
   \fill[black!10] (-12,73) rectangle (-8,75);
-  \fill[black!30] (-8,73) rectangle (-4,75);
-  \fill[black!40] (-4,73) rectangle (0,75);
-  \fill[black!50] (0,73) rectangle (4,75);
-  \fill[black!45] (4,73) rectangle (8,75);
-  \fill[black!30] (12,73) rectangle (16,75);
-  \fill[black!10] (16,73) rectangle (20,75);
-  \fill[black!10] (20,73) rectangle (24,75);
-  \fill[black!10] (24,73) rectangle (28,75);
+  \fill[black!30] (-8,73)  rectangle (-4,75);
+  \fill[black!40] (-4,73)  rectangle (0,75);
+  \fill[black!50] (0,73)   rectangle (4,75);
+  \fill[black!45] (4,73)   rectangle (8,75);
+  \fill[black!40] (8,73)   rectangle (12,75);
+  \fill[black!30] (12,73)  rectangle (16,75);
+  \fill[black!10] (16,73)  rectangle (20,75);
+  \fill[black!10] (20,73)  rectangle (24,75);
+  \fill[black!10] (24,73)  rectangle (28,75);
 
   \fill[black!10] (-24,75) rectangle (-20,77);
   \fill[black!30] (-20,75) rectangle (-16,77);
-  \fill[black!60] (-16,75) rectangle (-12,77);
+  \fill[black!40] (-16,75) rectangle (-12,77);
   \fill[black!80] (-12,75) rectangle (-8,77);
-  \fill[black!30] (-8,75) rectangle (-4,77);
-  \fill[black!20] (-4,75) rectangle (0,77);
-  \fill[black!40] (0,75) rectangle (4,77);
-  \fill[black!15] (4,75) rectangle (8,77);
-  \fill[black!10] (12,75) rectangle (16,77);
-  \fill[black!30] (16,75) rectangle (20,77);
-  \fill[black!60] (20,75) rectangle (24,77);
-  \fill[black!40] (24,75) rectangle (28,77);
+  \fill[black!30] (-8,75)  rectangle (-4,77);
+  \fill[black!20] (-4,75)  rectangle (0,77);
+  \fill[black!40] (0,75)   rectangle (4,77);
+  \fill[black!15] (4,75)   rectangle (8,77);
+  \fill[black!10] (8,75)   rectangle (12,77);
+  \fill[black!10] (12,75)  rectangle (16,77);
+  \fill[black!30] (16,75)  rectangle (20,77);
+  \fill[black!60] (20,75)  rectangle (24,77);
+  \fill[black!40] (24,75)  rectangle (28,77);
 
-  \node[bin,opacity=.3,fill=cyan]  at (-24.7, 24) {};
-  \node[bin,opacity=.3,fill=green]   at (-17.7, 24) {};
-  \node[bin,opacity=.3,fill=yellow]    at (-10.7, 24) {};
+  \node[bin,opacity=.3,fill=cyan]   at (-24.7, 24) {};
+  \node[bin,opacity=.3,fill=green]  at (-17.7, 24) {};
+  \node[bin,opacity=.3,fill=yellow] at (-10.7, 24) {};
   \node[bin,opacity=.3,fill=orange] at (-3.7, 24)  {};
-  \node[bin,opacity=.3,fill=red]   at (3.3, 24)   {};
-  \node[bin,opacity=.3,fill=purple]    at (10.3, 24)  {};
-  \node[bin,opacity=.3,fill=violet]  at (17.3, 24)  {};
-  \node[bin,opacity=.3,fill=blue] at (24.3, 24)  {};
+  \node[bin,opacity=.3,fill=red]    at (3.3, 24)   {};
+  \node[bin,opacity=.3,fill=purple] at (10.3, 24)  {};
+  \node[bin,opacity=.3,fill=violet] at (17.3, 24)  {};
+  \node[bin,opacity=.3,fill=blue]   at (24.3, 24)  {};
 
-  \node[bin,opacity=.3,fill=yellow]    at (-24.7,48) {};
+  \node[bin,opacity=.3,fill=yellow] at (-24.7,48) {};
   \node[bin,opacity=.3,fill=orange] at (-17.7,48) {};
-  \node[bin,opacity=.3,fill=red]   at (-10.7,48) {};
-  \node[bin,opacity=.3,fill=purple]    at (-3.7,48)  {};
-  \node[bin,opacity=.3,fill=violet]  at (3.3,48)   {};
-  \node[bin,opacity=.3,fill=blue] at (10.3,48)  {};
-  \node[bin,opacity=.3,fill=cyan]  at (17.3,48)  {};
-  \node[bin,opacity=.3,fill=green]   at (24.3,48)  {};
+  \node[bin,opacity=.3,fill=red]    at (-10.7,48) {};
+  \node[bin,opacity=.3,fill=purple] at (-3.7,48)  {};
+  \node[bin,opacity=.3,fill=violet] at (3.3,48)   {};
+  \node[bin,opacity=.3,fill=blue]   at (10.3,48)  {};
+  \node[bin,opacity=.3,fill=cyan]   at (17.3,48)  {};
+  \node[bin,opacity=.3,fill=green]  at (24.3,48)  {};
 
   %\draw[step=2mm] (-28.1,-4.1) grid (28.1,8.1);
   \node[matrix]                                 (I) at (0, 0)          {Instruction $\mathbf{I}$};
@@ -788,7 +795,8 @@ of the kind discussed earlier and non-trivial logical conditions.
     width=\columnwidth]{figures/complex-eval}}
     \caption{Evaluation reward on instructions of length 20}
   \end{subfigure}%
-  \caption{These graphs depict performance on the complex $6\times6$ environment. Details are provided in
+  \caption{These graphs depict performance on the complex $6\times6$ environment
+    with temporally extended subtasks. Details are provided in
 section \ref{results}.}
   \label{complex}
 \end{figure*}
