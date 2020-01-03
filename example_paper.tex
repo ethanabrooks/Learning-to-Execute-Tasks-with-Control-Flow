@@ -661,11 +661,10 @@ key insights:
 
 \subsection{Internal memory pointer}
 \label{internal-memory-pointer}
-As in \cite{oh2017zero}, given a $K$-length instruction $\mathbf{I}$ and hidden size $H$, the architecture generates a learned instruction memory
-$\mathbf{M}using ``Bag-of-words'' style
-encodings applied to each line.  \in \mathbb{R}^{K \times H}$ by applying ``Bag-of-words'' style
-encodings to each line of the instruction.
-Each line is
+As in \cite{oh2017zero}, the archicture maps a $K$-length instruction
+$\mathbf{I}$ to
+$\mathbf{M} \in K\times H$ using ``Bag-of-words'' style
+embeddings applied to each line, where $H$ is the size of the embedding.  Each line is
 a list of words $\mathbf{l}_k = \left(w^k_1,\dots,w^k_{|\mathbf{l}_k|}\right)$ and each instruction is
 a list of lines $\mathbf{I} = \left(\mathbf{l}_1,\dots,\mathbf{l}_{K}\right)$. Note that a
 line may either correspond to a subtask or to a control-flow statement.
@@ -735,10 +734,12 @@ perceptron. Finally the equation for the distribution over next lines is
   \mathbf{P}_{ij} = \mathbf{B}_{ij}\prod_{k \in (1, -1, 2, -2, \dots)}\left(1 -
   \mathbf{B}_{kj}\right)
 \end{equation}
-where $\mathbf{P} \in \mathbb{R}^{2K\times\ell }$. Intuitively, $\mathbf{P}$ is the distribution produced by
-sampling a Bernoulli distribution parameterized by $\mathbf{B}_k$ at each index
+where $\mathbf{P} \in \mathbb{R}^{2K\times\ell }$. Intuitively, for any $1\le j
+\le \ell$, 
+$\left(\mathbf{P}_{1,j}, \dots, \mathbf{P}_{2K,j}\right)$ is the distribution produced by
+sampling a Bernoulli distribution parameterized by $\mathbf{B}_{kj}$ at each index
 $k$, concentrically moving away from the first index, and stopping at the first success.
-As section \ref{rolling} will explain, the first index of $\mathbf{B}$ may
+As section \ref{rolling} will explain, $\mathbf{B}_{1j}$ may
 correspond to an index other than the first for $\mathbf{I}$ and $\mathbf{M}$.
 
 As in \cite{oh2017zero}, movements of the internal memory pointer are a learned
