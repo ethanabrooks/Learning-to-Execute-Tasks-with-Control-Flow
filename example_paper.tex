@@ -190,7 +190,7 @@ subtask is currently active. This presents the agent three learning challenges:
     \texttt{while} loop) or after the current line in the instruction.
 \end{enumerate}
 
-Existing architectures, e.g. \cite{heess2015memory} incorporate recurrent neural
+Existing architectures, e.g. \citet{heess2015memory} incorporate recurrent neural
 architectures and have demonstrated a capacity to learn partially-observed
 tasks. However, we demonstrate that these architectures are only capable of
 mastering instructions up to a certain length. Moreover, these architectures do not
@@ -238,21 +238,21 @@ to instructions multiple times the length of the longest training instructions.
 \subsection{Instructional tasks}
 Our work builds heavily on the work of ZTG. That work considered
 only sequential subtasks and did not address branching conditions. Recent work,
-namely \cite{sun2020program} considers tasks with branching statements similar
+namely \citet{sun2020program} considers tasks with branching statements similar
 to this work but assumes the existence of a pretrained parser, and uses
 supervised learning to learn to evaluate conditions, which requires either a
 dataset of observations and conditions with corresponding evaluations or a
 hand-engineered mechanism for assessing the ground-truth of conditional
-statements. \cite{sohn2018hierarchical} investigates tasks corresponding to a
+statements. \citet{sohn2018hierarchical} investigates tasks corresponding to a
 ``subtask graph'' which encodes preconditions. Since a subtask may have multiple
 preconditions, with either all or at least one of them needing to be performed
 as prerequisites for certain other subtasks, this work is similar to ours in the
 sense of exploring non-linear subtask sequences. However, this work does not
 explicitly address the problem of conditionals or looping logic in tasks.
-\cite{zhang2018composable} considers tasks specified by ``attributes'' instead
+\citet{zhang2018composable} considers tasks specified by ``attributes'' instead
 of subtasks, though the two are conceptually similar. Subtasks are ordered
 according to a learned transition function, which ends up resembling the
-prerequisites from \cite{sohn2018hierarchical}. 
+prerequisites from \citet{sohn2018hierarchical}. 
 
 
 \begin{figure*}[t]
@@ -561,7 +561,7 @@ thin, draw,
 \section{Problem Formulation}
 
 In order to study the problem of instructions with control-flow, we
-study use a Domain Specific Language, similar to \cite{sun2020program}.
+study use a Domain Specific Language, similar to \citet{sun2020program}.
 At the beginning of an episode our agent observes a numerical representation of
 the instruction $\mathbf{I} \in\mathcal{I}$. Each time-step the agent also receives an observation of the
 environment $\mathbf{x}_t \in\mathcal{O}$. 
@@ -748,7 +748,7 @@ correspond to an index other than the first for $\mathbf{I}$ and $\mathbf{M}$.
 As in ZTG, movements of the internal memory pointer are a learned
 function of the history of selections in memory, of actions and of observations.
 Concretely, we generate a hidden state by feeding all of these values each time
-step through a Gated Recurrent Network \cite{ChoMGBSB14}:
+step through a Gated Recurrent Network \citet{ChoMGBSB14}:
 \begin{equation}
   \mathbf{h}_t = \GRU\left(f_\theta\left(\mathbf{x}_t\right),
     \mathbf{M}_{p_{t-1}}, \mathbf{g}_{t-1},
