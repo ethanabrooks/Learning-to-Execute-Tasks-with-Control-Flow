@@ -54,7 +54,7 @@
 
 \begin{algorithm}[b]
   \caption{#2}
-  \label{multi-line}
+  \label{subtask-update}
   \begin{algorithmic}[1]
     \STATE {\bfseries Inputs:} $p_t, \mathbf{M} , \mathbf{x}_t, \mathbf{h}_{t-1}$
     %\STATE number of lines per instruction $n \in \mathbb{N}$,
@@ -167,22 +167,22 @@ Instructions}
 \end{abstract}
 
 \section{Introduction}
-One important goal of reinforcement learning is to develop agents capable of
-executing complex instructions. Many different factors contribute to the
+ We consider the problem of an RL agent learning to execute complex instructions.
+ Many different factors contribute to the
 complexity of plausible instructions. In this work, we focus on the problem of
 control flow in instructions comprising multiple subtasks. Whereas existing work
-\cite{oh2017zero} studied problems in which the succession of subtasks was
+\cite{oh2017zero} (ZTG) studied problems in which the succession of subtasks was
 sequential, this work studies problems in which conditions in the environment
 determine succession. Concretely, we examine problems in which programmatic
 control-flow statements, e.g. \texttt{if} and \texttt{while}, determine the next subtask
 that must be performed by the agent. 
 
-In keeping with \cite{oh2017zero}, we study instructions in which the observation does
+In keeping with ZTG, we study instructions in which the observation does
 not include explicit information about the current subtask to be performed.
 Therefore the agent must infer, based on the history of observations, which
 subtask is currently active. This presents the agent three learning challenges:
 \begin{enumerate}
-  \item determining when the current subtask is complete based on the state of
+  \item determining when the current subtask is complete based on observations of
     the environment.
   \item determining whether conditional statements (\texttt{if}, \texttt{else},
     \texttt{while}) evaluate to true or false.
@@ -231,12 +231,12 @@ to instructions multiple times the length of the longest training instructions.
   \end{subfigure}%
   \hfill
   \caption{Example instruction with environment}
-\vskip -0.6in
+\vskip -0.4in
 \end{figure}
 
 \section{Related Work}
 \subsection{Instructional tasks}
-Our work builds heavily on the work of \cite{oh2017zero}. That work considered
+Our work builds heavily on the work of ZTG. That work considered
 only sequential subtasks and did not address branching conditions. Recent work,
 namely \cite{sun2020program} considers tasks with branching statements similar
 to this work but assumes the existence of a pretrained parser, and uses
@@ -560,7 +560,7 @@ thin, draw,
 
 \section{Problem Formulation}
 
-In order to study the problem of instructions with complex control-flow, we
+In order to study the problem of instructions with control-flow, we
 study use a Domain Specific Language, similar to \cite{sun2020program}.
 At the beginning of an episode our agent observes a numerical representation of
 the instruction $\mathbf{I} \in\mathcal{I}$. Each time-step the agent also receives an observation of the
@@ -589,7 +589,7 @@ where an interaction corresponds to \textit{visit}, \textit{pickup}, or
 \textit{sheep}, or \textit{goat}.
 
 \subsection{Environment}
-In keeping with \cite{oh2017zero}, our environment consists of a gridworld in which
+In keeping with ZTG, our environment consists of a gridworld in which
 objects spawn randomly at the beginning of an episode. In order to perform a
 subtask, the agent must navigate to the object, and perform the appropriate
 interaction (visit, pickup, or transform), which each affect the environment in
@@ -625,7 +625,10 @@ $\mathbf{H} \in \mathbb{R}^{2K \times H}$
 \STATE $\mathbf{B}_{-1} \gets 1$  
 \STATE initialize $\mathbf{P} \in \mathbb{R}^{2K \times \ell}$
 \FOR{$i$ in $0, \dots, 2K$}
-\STATE $\mathbf{P}_i \gets \mathbf{B}_i\prod_{j=1}^{i-1}\left(1 - \mathbf{B}_j\right)$
+\FOR{$j$ in $0, \dots, \ell$}
+\STATE $\mathbf{P}_{ij} \gets \mathbf{B}_{ij}\prod_{k=1}^{i-1}\left(1 -
+\mathbf{B}_{kj}\right)$
+\ENDFOR
 %\COMMENT{This expression ensures the columns of $\mathbf{W} \in
 %\mathbb{R}^{2n}$.}
 \ENDFOR
@@ -646,7 +649,7 @@ its ability to generalize to longer instructions. Our architecture incorporates 
 key insights:
 
 \begin{enumerate}
-  \item \textbf{Internal memory pointer:} Borrowing from \cite{oh2017zero}, our architecture incorporates an
+  \item \textbf{Internal memory pointer:} Borrowing from ZTG, our architecture incorporates an
     internal memory pointer that learns to track the agent's progress through
     the larger instruction.
   \item \textbf{Instruction Scanning:} When moving the internal memory pointer, the agent
@@ -661,7 +664,7 @@ key insights:
 
 \subsection{Internal memory pointer}
 \label{internal-memory-pointer}
-As in \cite{oh2017zero}, the archicture maps a $K$-length instruction
+As in ZTG, the archicture maps a $K$-length instruction
 $\mathbf{I}$ to
 $\mathbf{M} \in K\times H$ using ``Bag-of-words'' style
 embeddings applied to each line, where $H$ is the size of the embedding.  Each line is
@@ -674,7 +677,7 @@ embeddings are summed:
   \mathbf{M}_k = \sum_{i=1}^{|\mathbf{l}_k|} \phi\left(w^k_i\right)
 \end{equation}
 
-In \cite{oh2017zero}, the
+In ZTG, the
 upper-level agent chooses 
 subtask parameters as a function of a weighted sum of these
 embeddings and learns a convolution operator 
@@ -725,7 +728,7 @@ $\ell$ outgoing edges which each correspond to a learned distribution over other
 in the instruction. To produce each distribution, we feed the embedded representation
 of the instruction $\mathbf{M}$ through a bidirectional GRU to produce a
 representation $\mathbf{H} \in \mathbb{R}^{2K \times H}$ 
-that incorporates local context information. The outputs of the GRU in both
+that incorporates global context information. The outputs of the GRU in both
 directions are projected to a vector $\mathbf{B} \in (0, 1)^{2K\times \ell
  }$ using a sigmoidal
 perceptron. Finally the equation for the distribution over next lines is
@@ -742,7 +745,7 @@ $k$, concentrically moving away from the first index, and stopping at the first 
 As section \ref{rolling} will explain, $\mathbf{B}_{1j}$ may
 correspond to an index other than the first for $\mathbf{I}$ and $\mathbf{M}$.
 
-As in \cite{oh2017zero}, movements of the internal memory pointer are a learned
+As in ZTG, movements of the internal memory pointer are a learned
 function of the history of selections in memory, of actions and of observations.
 Concretely, we generate a hidden state by feeding all of these values each time
 step through a Gated Recurrent Network \cite{ChoMGBSB14}:
@@ -752,7 +755,7 @@ step through a Gated Recurrent Network \cite{ChoMGBSB14}:
   \mathbf{h}_{t-1}\right)
 \end{equation}
 where $f_\theta$ is a convolutional neural network. Whereas the
-\cite{oh2017zero} architecture
+ZTG architecture
 projects $\mathbf{h}_{t}$ to the one-step convolution operator described in
 section \ref{internal-memory-pointer}, we project $\mathbf{h}_t$ to $\mathbf{u}_t\in \mathbb{R}^\ell$, a weight vector
 used to choose among paths previously encoded from the instruction. Thus the final
@@ -776,9 +779,32 @@ $p_t$ before feeding it to the bidirectional GRU. In other words, the forward GR
 order $(p_t, p_t + 1, \dots, K, 1, \dots, p_t - 1)$, running from the current
 line, wrapping around the last line of the instruction, and returning to the line
 before the current line. Thus the operations described in section \ref{scanning} are all performed
-relative to the current active line in memory. That is, $\mathbf{B}_{i}$ in
+relative to the current active line in memory. That is, $\mathbf{B}_{i\cdot}$ in
 equation \ref{P} refers to the row of $\mathbf{B}$ corresponding to the $(p_t +
 i)^{\text{th}}$ index of $\mathbf{M}$.
+
+\subsection{Algorithm Description}
+In summary, each time step our algorithm 
+\begin{enumerate}
+  \item Rolls the embedded instruction $\mathbf{M}$ so that the index
+    corresponding to the pointer $p_t$ is first.
+  \item Passes the embedded instruction through a bidirectional GRU in order to
+    incorporate global context information.
+  \item Uses the \texttt{scan} function to produce $\ell$ distributions with
+    dimension $2K$ (see Algorithm \ref{scan} for pseudocode).
+  \item Passes the current observation and the $p_t^{\text{th}}$ index of
+    $\mathbf{M}$ through a GRU controller in order to generate hidden state
+    $\mathbf{h}_t$.
+  \item Projects $\mathbf{h}_t$ to the  $\ell$-dimensional probability vector
+    $\mathbf{u}$ and to the distribution from which the next subtask parameter
+    $\mathbf{g}_t$ is sampled.
+  \item Uses $\tilde{\mathbf{u}} = \softmax(\mathbf{u})$ to produce a weighted
+    sum of the $\ell$ distributions in matrix $\mathbf{P}$. Intuitively,
+    $\tilde{\mathbf{u}}$ chooses among the outgoing edges from the current node.
+  \item Uses the resulting distribution to sample $d_t$ which is used to produce
+    $p_{t+1} = p_t + d_t$.
+\end{enumerate}
+Pseudocode is provided in Algorithm \ref{subtask-update}.
 
 \section{Experiments}
 \label{experiments}
@@ -847,7 +873,7 @@ test their effectiveness. We present five baselines:
 to this problem because the archicture would then have no hope of generalizing
 to longer unseen instructions.}
   \item \textbf{Oh et. al.} This baseline reproduces the algorithm described in
-    \cite{oh2017zero}.
+    ZTG.
 \end{itemize}
 Psuedocode for all the baselines is also included in Appendix \ref{baselines}.
 
@@ -871,6 +897,9 @@ are evaluated according to whether the object exists. For example, the statement
 environment, and false otherwise.
 
 
+\subsection{Training procedure}
+To do
+ 
 \subsection{Results}
 \label{results}
 Figures \ref{minimal} and \ref{complex} compare the performance of our
@@ -878,8 +907,10 @@ architecture with several baselines.
 Unless otherwise specified, each graph plots the rewards that these architectures achieved on \textit{longer
 length} instructions.
  Note that all graphs depict the performance of agents trained on instructions with lengths drawn uniformly between 1 and 10. Thus
-the graphs corresponding to longer instructions measure the generalization capability of each architecture. Each
-line is the average reward achieved by 150 parallel processes over the course of
+the graphs corresponding to longer instructions measure the generalization
+capability of each architecture. Each agent generates behavior using 150
+parallel processes. Thus each
+line is the average reward achieved by these parallel processes over the course of
 200 steps of evaluation. The error bars represent five separate distinct random
 seeds ($150 \times 5$ total processes).
 
