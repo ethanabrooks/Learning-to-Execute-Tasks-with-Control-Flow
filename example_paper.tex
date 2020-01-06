@@ -59,7 +59,7 @@
 
 % The \icmltitle you define below is probably too long as a header.
 % Therefore, a short form for the running title is supplied here:
-\icmltitlerunning{Hierarchical Reinforcement Learning with Complex Control Flow
+\icmltitlerunning{Hierarchical Reinforcement Learning with Complex Control-Flow
 Instructions}
 
 
@@ -87,24 +87,13 @@ Instructions}
 \begin{icmlauthorlist}
 \icmlauthor{Ethan Brooks}{um}
 \end{icmlauthorlist}
-%\icmlauthor{Bauiu C.~Yyyy}{equal,to,goo}
-%\icmlauthor{Cieua Vvvvv}{goo}
-%\icmlauthor{Iaesut Saoeu}{ed}
-%\icmlauthor{Fiuea Rrrr}{to}
-%\icmlauthor{Tateu H.~Yasehe}{ed,to,goo}
-%\icmlauthor{Aaoeu Iasoh}{goo}
-%\icmlauthor{Buiui Eueu}{ed}
-%\icmlauthor{Aeuia Zzzz}{ed}
-%\icmlauthor{Bieea C.~Yyyy}{to,goo}
-%\icmlauthor{Teoau Xxxx}{ed}
-%\icmlauthor{Eee Pppp}{ed}
 
 \icmlaffiliation{um}{Computer Science \& Engineering, University of Michigan}
+%\icmlaffiliation{to}{Department of Computation, University of Torontoland, Torontoland, Canada}
 %\icmlaffiliation{goo}{Googol ShallowMind, New London, Michigan, USA}
 %\icmlaffiliation{ed}{School of Computation, University of Edenborrow, Edenborrow, United Kingdom}
 
 \icmlcorrespondingauthor{Ethan Brooks}{ethanbro@umich.edu}
-%\icmlcorrespondingauthor{Eee Pppp}{ep@eden.co.uk}
 
 % You may provide any keywords that you
 % find helpful for describing your paper; these are used to populate
@@ -123,7 +112,7 @@ Instructions}
 % Remove it (just {}) if you do not need this facility.
 
 %\printAffiliationsAndNotice{}  % leave blank if no need to mention equal contribution
-%\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
+\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 
 \begin{abstract}
   This research studies instructions comprising subtasks with nonlinear control-flow based on conditions in
@@ -198,9 +187,7 @@ to instructions multiple times the length of the longest training instructions.
   \caption{Example instruction with environment}
 \vskip -0.3in
 \end{figure}
-
 \section{Related Work}
-%\subsection{Instructional tasks}
 Our work builds heavily on the work of OLSK. That work considered
 only sequential subtasks and did not address branching conditions. Recent work,
 namely \citet{sun2020program} consider tasks with branching statements similar
@@ -218,7 +205,6 @@ explicitly address the problem of conditionals or looping logic in tasks.
 of subtasks, though the two are conceptually similar. Subtasks are ordered
 according to a learned transition function, which ends up resembling the
 prerequisites from \citet{sohn2018hierarchical}. 
-
 
 \begin{figure*}[t]
 \centering
@@ -553,6 +539,7 @@ a different way:
     object.
   \item \textit{Visit} leaves the object unchanged.
 \end{itemize}
+
 
 
 
@@ -1489,7 +1476,7 @@ observations, and noisy natural-language inputs.
 %% references without citing it in the main text, use \nocite
 %\nocite{langley00}
 
-\bibliography{example_paper}
+\bibliography{main}
 \bibliographystyle{icml2019}
 
 
@@ -1519,16 +1506,3 @@ observations, and noisy natural-language inputs.
 
 
 \end{document}
-
-
-% This document was modified from the file originally made available by
-% Pat Langley and Andrea Danyluk for ICML-2K. This version was created
-% by Iain Murray in 2018, and modified by Alexandre Bouchard in
-% 2019. Previous contributors include Dan Roy, Lise Getoor and Tobias
-% Scheffer, which was slightly modified from the 2010 version by
-% Thorsten Joachims & Johannes Fuernkranz, slightly modified from the
-% 2009 version by Kiri Wagstaff and Sam Roweis's 2008 version, which is
-% slightly modified from Prasad Tadepalli's 2007 version which is a
-% lightly changed version of the previous year's version by Andrew
-% Moore, which was in turn edited from those of Kristian Kersting and
-% Codrina Lauth. Alex Smola contributed to the algorithmic style files.
