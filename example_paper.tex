@@ -892,7 +892,7 @@ test their effectiveness. We present five baselines:
     in both directions. See figure \ref{no-pointer}. 
   \item \textbf{OLSK} This baseline reproduces the algorithm described in
     OLSK.
-  \item The ``simple'' architecture for which figure
+  \item \textbf{Simple:} The ``simple'' architecture for which figure
     \ref{simple-rewards} depicts performance on training tasks. This
     architecture is almost identical to the \textbf{No Pointer} baseline except
     that the embedded instruction $\mathbf{M}$ is fed directly to the GRU
@@ -972,12 +972,21 @@ architectures -- spurious correlations with past observations may form leading
 to local optima that may take a long time to escape.
 
 \subsubsection{No roll}
-The advantage of rolling is that the agent favors lines in the instruction that
-are closer to the current line over lines that are more distant. Without
-rolling, the bidirectional task-encoding GRU must 
-No roll: jumping to the wrong location (esp. in while loop) mis-evaluating while
-loop
-To do
+Without rolling, the pointer movements that get encoded in $\mathbf{P}_t$ become
+generic, no longer a function of the input instruction. The reason is that there
+is not way for the bidirectional GRU to know the current index of the memory pointer 
+and what jumps might be appropriate from there (whereas with the roll operation,
+the current index of the memory pointer is always the first input to the
+bidirectional GRU). Thus the agent learns a series of standard movements common
+in the randomly generated instructions -- move forward one line (the most common
+movement), move backward two lines (the mean length of a while loop is two
+lines), etc.
+
+As one might expect, these generic movements only work for a subset of
+instructions. One common error that this baseline exhibits is jumping to the
+wrong location, especially for uncommon movements. We also note that this
+baseline often mis-evaluates condition statements and we hypothesize that this
+is a ``downstream'' error of the kind we discussed earlier.
 
 \subsubsection{No scan / No roll or scan}
 We observe that agents that do not use the scan function tend to learn a
