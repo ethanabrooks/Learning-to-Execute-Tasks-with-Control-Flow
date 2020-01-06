@@ -841,12 +841,10 @@ section \ref{results}.}
 
 \begin{figure}[t]
 \vskip 0.2in
-\centerline{\includegraphics[width=\columnwidth]{simple-rewards}}
+\centerline{\includegraphics[width=\columnwidth]{simple-rewards.png}}
 \caption{Training performance of the ``simple architecture'' on the minimal
-environment. Each line corresponds to the maximum number from which
-instruction line-lengthes were drawn. For example the 10 line corresponds to an
-agent trained on instructions whose length was sampled uniformly between 1 and
-10. Note that all agents trained on tasks with lengths greater than 5 fail to
+environment. Each line corresponds to the number of lines per instruction.
+Note that all agents trained on tasks with lengths greater than 5 fail to
 converge to the maximum possible reward of 1.}
 \label{simple-rewards}
 \vskip -0.2in
@@ -896,12 +894,6 @@ c_g)\mathbf{g}_{t-1}$ and  $p_t = c_p\tilde{p}_t + (1 - c_p)p_{t-1}$.
 
 Psuedocode for the full algorithm used on the complex environment is provided in
 Appendix \ref{full-algorithm}.
-%\begin{align}
-  %L(\theta) &= \mathbb{E}\left[\min(r_t(\theta)A_t, \clip\left(r_t(\theta), 1 - \epsilon, 1 +
-  %\epsilon\right)A_t\right]
-  %\intertext{where}
-  %r_t(\theta) &= 
-%\end{align}
 
 \subsection{Baselines}
 In our experiments, we ablate the main features of our algorithm in order to
