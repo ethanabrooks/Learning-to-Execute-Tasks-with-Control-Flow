@@ -40,7 +40,7 @@
 
 \DeclareMathOperator{\GRU}{GRU}
 \DeclareMathOperator{\BIGRU}{BI-GRU}
-\DeclareMathOperator{\Cat}{Cat}
+\DeclareMathOperator{\Cat}{categorical}
 \DeclareMathOperator{\roll}{roll}
 \DeclareMathOperator{\scan}{scan}
 \DeclareMathOperator{\softmax}{softmax}
@@ -190,7 +190,8 @@ Our work builds heavily on the work of OLSK. That work considered
 only sequential subtasks and did not address branching conditions. Recent work,
 namely \citet{sun2020program}, consider tasks with branching statements similar
 to this work but assumes the existence of a pretrained parser, and uses
-supervised learning to learn to evaluate conditions, which requires either a
+supervised learning to learn to evaluate conditions. Supervised learning in this
+context requires either a
 dataset of observations and conditions with corresponding evaluations or a
 hand-engineered mechanism for assessing the ground-truth of conditional
 statements. \citet{sohn2018hierarchical} investigate tasks corresponding to a
@@ -626,7 +627,7 @@ $\mathbf{H} \in \mathbb{R}^{2K \times H}$
 Our goal in this research was not only to develop an architecture capable of
 mastering tasks corresponding to complex logical instructions but to generalize
 to longer tasks than those on which the agent was trained.
-In section \ref{experiments}, we present evidence that conventional architectures
+In section \ref{experiments} and figure \ref{simple-rewards}, we present evidence that conventional architectures
 fail to master even the tasks in their training set once those tasks exceed a
 certain complexity.
 However, simpler architectures than ours do demonstrate strong training
@@ -783,11 +784,11 @@ In summary, each time-step our algorithm
     $\mathbf{M}$ through a GRU controller in order to generate hidden state
     $\mathbf{h}_t$.
   \item projects $\mathbf{h}_t$ to the  $\ell$-dimensional probability vector
-    $\mathbf{u}$ and to the distribution from which the next subtask parameter
+    $\mathbf{u}_t$ and to the distribution from which the next subtask parameter
     $\mathbf{g}_t$ is sampled.
-  \item uses $\tilde{\mathbf{u}} = \softmax(\mathbf{u})$ to produce a weighted
+  \item uses $\tilde{\mathbf{u}}_t = \softmax(\mathbf{u}_t)$ to produce a weighted
     sum of the $\ell$ distributions in matrix $\mathbf{P}$. Intuitively,
-    $\tilde{\mathbf{u}}$ chooses among the outgoing edges from the current node.
+    $\tilde{\mathbf{u}}_t$ chooses among the outgoing edges from the current node.
   \item uses the resulting distribution to sample $d_t$ which is used to produce
     $p_{t+1} = p_t + d_t$.
 \end{enumerate}
@@ -842,7 +843,7 @@ Each agent generates behavior using 150 parallel processes. Each time-step the
 observation is fed through a single-layer convolutional network with kernel-size
 1 followed by max-pooling layer. We use a single layer perceptron with a
 Rectified Linear Unit \cite{nair2010rectified} to project the GRU output
-$\mathbf{h}_t$ to both $\mathbf{u}$ and the distribution over
+$\mathbf{h}_t$ to both $\mathbf{u}_t$ and the distribution over
 subtask parameters (see equation \ref{gru}).
 
 For the complex environment, a few modifications were made to the base algorithm
@@ -949,7 +950,7 @@ Identifying failure modes can be difficult with both our algorithm and the
 baselines because identifiable failures may be far downstream of the root cause.
 For example, we observe that on the longer evaluation instructions, the
 \textbf{No roll} baseline consistently mis-evaluates conditions, especially in
-while loops. However, the architecture responsible for evaluating conditions is
+while-loops. However, the architecture responsible for evaluating conditions is
 identical between the \textbf{No roll} baseline and our architecture. We infer that this
 part of the architecture was somehow poorly trained due to failures in other parts
 of the architecture that do differ somehow from our architecture.
@@ -960,7 +961,7 @@ performance since errors are compounded on the longer instructions -- an
 instruction that is twice as long offers twice as many opportunities to make a
 mistake. Consequently, strong performance on the evaluation tasks requires
 nearly flawless performance on the training instruction. Any architecture that fails to
-converge on the training tasks will have demonstrate dismal performance on the
+converge on the training tasks will demonstrate dismal performance on the
 evaluation tasks.  We observe that all architectures with both an internal memory pointer and the
 capacity to move from any memory index to any other memory index are able to
 achieve near optimal performance on their training tasks. 
@@ -970,7 +971,7 @@ Reviewing the behavior of a fully trained agent, we did not observe any
 prominent error trends unique to our architecture. That is, certain failure
 modes emerged among all the architectures but were less prominent in ours,
 accounting for the improved performance. Common points of failure include
-terminating a while loop early or late, executing the previous action instead of
+terminating a while-loop early or late, executing the previous action instead of
 the current, or missing a long jump (that is, the architecture sometimes fails
 to navigate to the next active line if it comes long after the current line due
 to failed condition blocks).
@@ -987,7 +988,7 @@ and what jumps might be appropriate from there (whereas with the roll operation,
 the current index of the memory pointer is always the first input to the
 bidirectional GRU). Thus, the agent learns a series of standard movements common
 in the randomly generated instructions -- move forward one line (the most common
-movement), move backward two lines (the mean length of a while loop is two
+movement), move backward two lines (the mean length of a while-loop is two
 lines), etc.
 
 As one might expect, these generic movements only work for a subset of
@@ -1003,7 +1004,7 @@ instruction, outputting no-op actions inside failing condition blocks. While in
 principle this is a valid strategy for executing instructions of the kind
 described in this document, we observe a common tendency on the part of these agents to 
 advance the memory pointer prematurely (before performing the appropriate
-subtask) or to mis-evaluate while loops. We hypothesize that overloading the
+subtask) or to mis-evaluate while-loops. We hypothesize that overloading the
 GRU controller complicates the learning process, dissipating the effects of the
 learning signal, and exposing the learning process to a variety of local optima.
 
@@ -1029,10 +1030,16 @@ to the GRU controller. This strategy encounters many of the same difficulties
 and the \textbf{No pointer} baseline, failing to properly encode the possible
 paths through the instruction and roughly approximating them with high error.
 
+\subsubsection{Simple baseline}
+This baseline exhibits almost identical behavior to the \textbf{No pointer}
+baseline. As figure \ref{simple-rewards} demonstrates, this architecture fails
+to converge to optimal performance on training tasks corresponding to
+instructions longer than five lines.
+
 \section{Conclusion}
 This work studies a special but important subset of multi-task reinforcement
 learning problems, namely instructions with complex control-flow. We consider
-problems of this nature an important stepping stone toward natural language
+problems of this nature a stepping stone toward natural language
 instructions and toward agents capable of arbitrarily complex logic. We hope
 that future work will explore instructions that involve greater complexity,
 including conditionals with more complex predicates, higher-dimensional
