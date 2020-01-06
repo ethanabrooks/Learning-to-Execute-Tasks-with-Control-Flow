@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage{lscape}
 \usepackage{microtype}
 \usepackage{graphicx}
 \usepackage{subcaption}
@@ -8,6 +9,7 @@
 \usepackage{courier}
 \usepackage{amsmath, amsfonts}
 \usepackage{algorithm,float}
+\usepackage{algorithmic}
 \usepackage{lipsum}
 \usepackage{syntax}
 \pagestyle{empty}
@@ -20,17 +22,8 @@
 \lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
 \lstset{framextopmargin=50pt} % ,frame=bottomline}
 
-% hyperref makes hyperlinks in the resulting PDF.
-% If your build breaks (sometimes temporarily if a hyperlink spans a page)
-% please comment out the following usepackage line and replace
-% \usepackage{icml2019} with \usepackage[nohyperref]{icml2019} above.
-\usepackage{hyperref}
-
-% Attempt to make hyperref and algorithmic work together better:
-\newcommand{\theHalgorithm}{\arabic{algorithm}}
-\newcommand{\setalglineno}[1]{%
-  \setcounter{ALC@line}{\numexpr#1-1}}
-
+\DeclareMathOperator{\bern}{Bern}
+\DeclareMathOperator{\clip}{clip}
 \newcommand{\algo}[3][
     \STATE $V_t, \mathbf{u}_t, \mathbf{h}_t  \gets \GRU\left(\mathbf{x}_t, \mathbf{M}_{p_t}, \mathbf{h}_{t-1}\right)$
     %\COMMENT{
@@ -44,9 +37,8 @@
 ]
 {
 
-\begin{algorithm}[b]
+\begin{algorithm}[H]
   \caption{#2}
-  \label{multi-line}
   \begin{algorithmic}[1]
     \STATE {\bfseries Inputs:} $p_t, \mathbf{M} , \mathbf{x}_t, \mathbf{h}_{t-1}$
     %\STATE number of lines per instruction $n \in \mathbb{N}$,
@@ -65,6 +57,17 @@
   \end{algorithmic}
 \end{algorithm}
 }
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2019} with \usepackage[nohyperref]{icml2019} above.
+\usepackage{hyperref}
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\newcommand{\setalglineno}[1]{%
+  \setcounter{ALC@line}{\numexpr#1-1}}
 
 \DeclareMathOperator{\GRU}{GRU}
 \DeclareMathOperator{\BIGRU}{BI-GRU}
@@ -93,9 +96,87 @@ Instructions}
 \begin{document}
 \date{}
 \maketitle
+\section{Pseudocode for full algorithm used on ``complex'' task}
+\label{full-algorithm}
+
+\begin{algorithm}[h]
+%\captionFull algorithm for generation of subtask parameters per episode}
+\label{subtask-update}
+  \begin{algorithmic}[1]
+    \STATE {\bfseries Inputs:} instruction $\mathbf{I}$
+    %\STATE number of lines per instruction $n \in \mathbb{N}$,
+    %\STATE max graph arity $w \in \mathbb{N}$,
+    %\STATE hidden-state size $h \in \mathbb{N}$,
+    %\STATE embedded instruction matrix $\mathbf{M} \in \mathbb{R}^{n\times h}$,
+    %\STATE observation $\mathbf{x}_t \in \mathbb{R}^{m}$ for each time step
+    %$t$ of episode.
+    %\FOR{each episode}
+    \STATE $p_0 \gets 0$
+    %\COMMENT{begin episode attending to memory slot 0}
+    \STATE initialize $\mathbf{h}_0 \in \mathbb{R}^H$
+    %\COMMENT{$\mathbf{h}_0\in \mathbb{R}^h$}
+    \STATE $\mathbf{M} \gets \phi_{\text{bag-of-words}}(\mathbf{I})$
+    \FOR{time step $t$ in episode}
+    \STATE $\mathbf{M}^{p_t} \gets \roll\left(\mathbf{M}, -p_t\right)$
+    %\COMMENT{roll function rotates $\mathbf{M}$ around first
+    %axis. $\mathbf{M}_t \in \mathbb{R}^h$}
+    \STATE ${\mathbf{H}_t} \gets \BIGRU\left(\mathbf{M}^{p_t}\right)$
+    %\COMMENT{{$\mathbf{H}_t \in \mathbb{R}^{2n \times w \times h}$}}
+    \STATE ${\mathbf{P}_t \gets \scan\left(\mathbf{H}_t\right)}$
+    %\COMMENT{$\mathbf{P}_t$ comprises $\ell$ $2K$-dimensional probability
+    %distributions}
+    \STATE $V_t, \mathbf{u}_t, \mathbf{h}_t  \gets \GRU\left(\mathbf{x}_t, \mathbf{M}_{p_t}, \mathbf{h}_{t-1}\right)$
+    \STATE $c_g \sim \phi^g\left(\mathbf{h}_t\right)$
+    \STATE $c_p \sim \phi^p\left(\mathbf{h}_t\right)$
+    %\COMMENT{
+      %$\mathbf{\pi}_t \in \mathbb{R}^\mathcal{A}$. $V_t$ is the current value
+    %estimate. $\mathbf{u}_t\in \mathbb{R}^w$.}
+    \STATE $\mathbf{g}_{t} \sim c_g \pi_\theta\left(\mathbf{h}_t\right) + (1- c_g)\mathbf{g}_{t-1}$
+    %\COMMENT{$\mathbf{g}_t$ is the current action}
+    \STATE $\tilde{\mathbf{u}}_{t} \gets \softmax\left(\mathbf{u}_t\right)$
+    \STATE $d_{t} \sim \Cat\left(\mathbf{P}_t\tilde{\mathbf{u}}_t\right)$ 
+    \STATE $p_{t + 1} \gets c_p\left(p_t + d_t\right) + (1-c_p)p_{t-1}$
+    \ENDFOR
+  \end{algorithmic}
+\end{algorithm}
+
 \section{Pseudocode for baselines}
 \label{baselines}
-to do 
+
+\algo{No roll}{
+    %\COMMENT{roll function rotates $\mathbf{M}$ around first
+    %axis. $\mathbf{M}_t \in \mathbb{R}^h$}
+  \textcolor{red}{\STATE ${\mathbf{H}} \gets \BIGRU\left(\mathbf{M}\right)$}
+  \COMMENT{roll function not applied to $\mathbf{M}$}
+    \STATE ${\mathbf{P}_t \gets \scan\left(\mathbf{H}\right)}$
+    %\COMMENT{$\mathbf{P}_t$ comprises $\ell$ $2K$-dimensional probability
+    %distributions}
+}{}{}
+
+\algo{No scan}{
+    %\COMMENT{roll function rotates $\mathbf{M}$ around first
+    %axis. $\mathbf{M}_t \in \mathbb{R}^h$}
+  \STATE $\mathbf{H}_t \gets \BIGRU\left(\mathbf{M}^{p_t}\right)$
+\textcolor{red}{
+\STATE $\mathbf{P}_t \gets \beta(\mathbf{H}_t^K)$
+}
+\COMMENT{Project last outputs of bidirectional GRU to $\mathbf{P}_t$. $\beta$ is a single-layer perceptron.}
+    %\COMMENT{{$\mathbf{H}_t \in \mathbb{R}^{2n \times w \times h}$}}
+    %\COMMENT{$\mathbf{P}_t$ comprises $\ell$ $2K$-dimensional probability
+    %distributions}
+}{}{}
+
+\algo{No roll or scan}{
+    %\COMMENT{roll function rotates $\mathbf{M}$ around first
+    %axis. $\mathbf{M}_t \in \mathbb{R}^h$}
+\textcolor{red}{
+  \STATE $\mathbf{H}_t \gets \BIGRU\left(\mathbf{M}\right)$
+\STATE $\mathbf{P}_t \gets \beta(\mathbf{H}_t^K)$
+}
+    %\COMMENT{{$\mathbf{H}_t \in \mathbb{R}^{2n \times w \times h}$}}
+    %\COMMENT{$\mathbf{P}_t$ comprises $\ell$ $2K$-dimensional probability
+    %distributions}
+}{}{}
 \section{Task grammar}
 \label{grammar}
 \topskip0pt
@@ -128,6 +209,66 @@ to do
 \end{grammar}
 \vspace*{\fill}
 \section{Environment details}
-to do 
-\section{Training rewards}
+\subsection{Observation space}
+Each observation contains a tuple of task specification and top-down 2d view of
+the 6x6 gridworld. The task is specified as a sequence of integers coding the
+line type or subtask (the first 12 integers are reserved for subtask ids). The
+gridworld view has 6 channels: one for each object type (cat, pig, sheep, goat,
+ice) and one for the agent.  
+\subsection{Action space}
+The action space is discrete with 12 values in total, corresponding to \{visit, transform, pick up\} $\times$ \{sheep, pig, cat, goat\}. The agent may also choose a special no-op action which does not advance the time-step counter but allows the agent to move its internal memory pointer  multiple times per environment time-step. 
+
+During training, there is a 50-count limit to the number of no-ops the agent may perform per episode. If the agent exceeds this limit, its reward is 0, even if it successfully completes all subtasks. 
+\subsection{Termination}
+The episode terminates when either there are no more subtasks to perform, the time-limit is reached, or the agent encounters an impossible action (as when the object with which the agent must interact has been transformed or picked up).
+Because of the varying length of instructions and the possibility of extended execution lengths due to while loops, we dynamically compute the time-limit of the episode based on the minimal execution time plus a 3-time-step buffer.
+\subsection{Reward}
+The agent receives a reward of 1 upon termination if ``successful'' and a reward of 0 for all other time steps. We define ``success'' as completing all subtasks dictated by the control flow without picking up or transforming an object out of order.
+
+\subsection{Generation of instructions}
+Taks are randomly generated line by line. Most lines are sampled uniformly at
+random from \{If, While, Subtask\}. If the current line is inside an if-clause and
+the preceding line is a subtask, then \{Else, EndIf\} is added to the list of
+randomly sampled line types. Similar rules apply to while-clauses (we add
+EndWhile to the list) and else-clauses (we add EndIf). 
+
+
+\subsection{Spawning of world objects}
+At the beginning of each episode, subtasks are generated at random (with one caveat, discussed later) using two of the four objects  chosen at random. 
+For each subtask in the instruction, we take the corresponding object and place it randomly in the gridworld. The reason for excluding half of the objects when generating the subtasks is to ensure that the agent has sufficient exposure to failing conditional statements\footnote{Recall that conditions are evaluated according to whether or not an object exists. We found that unless some objects were witheld, conditions nearly always passed, making it very difficult for the agent to learn to correctly evaluate the few remaining conditions that failed.} In order to prevent infinite loops, one line in every while block is replaced with either a pickup or transform subtask (chosen randomly) with the object upon which the while-statement is conditioned. 
+
+
+\section{Training details}
+\label{training}
+\subsection{Learning objective}
+Per the Proximal Policy Optimization algorithm, the learning objective is
+
+\begin{align}
+	L(\theta) &= \mathbb{E}[\min(r_t(\theta)A_t, \clip\left(r_t(\theta), 1 - \epsilon, 1 +
+	\epsilon\right)A_t]
+\end{align}
+where
+\begin{align}
+	r_t(\theta) &= \frac{P(\mathbf{g}_t, d_t, c_g, c_p|\mathbf{x}_t, \theta)}{P(\mathbf{g}_t, d_t, c_g, c_p|\mathbf{x}_t, \theta_{\text{old}})}
+\end{align}
+where $A_t$ denotes the advantage on time step $t$, $\theta$ denotes network parameters and $\theta_\text{old}$ represents the pre-update parameters.
+\begin{landscape}
+\subsection{Hyperparameters}
+
+\begin{tabular}{l|lllllll}
+                          & Ours   & No roll & No scan & No roll or scan & No pointer & Oh et. al. & Simple \\
+                          \hline
+
+convolution hidden size   & 64     & 32      & 64      & 32              & 64         & 64         & 64     \\
+encoder hidden size       & 64     & 64      & 64      & 64              & 64         & 64         & 64     \\
+entropy coefficient       & 0.01   & 0.01    & 0.01    & 0.01            & 0.01       & 0.01       & 0.01   \\
+controller hidden size    & 32     & 32      & 32      & 32              & 32         & 32         & 32     \\
+learning rate             & 0.0025 & 0.0025  & 0.003   & 0.0025          & 0.0025     & 0.0025     & 0.0025 \\
+$\ell$                    & 6      & 6       & 7       & 7               & NA         & NA         & NA     \\
+time steps per update     & 35     & 35      & 35      & 35              & 35         & 40         & 35     \\
+gradient steps per update & 2      & 2       & 2       & 2               & 2          & 2          & 2      \\
+                          &        &         &         &                 &            &            &        \\
+                          &        &         &         &                 &            &            &       
+\end{tabular}
+\end{landscape}
 \end{document}
