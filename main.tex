@@ -144,7 +144,7 @@ subtask is currently active. This presents the agent three learning challenges:
     \texttt{while} loop) or after the current line in the instruction.
 \end{enumerate}
 
-Existing architectures, e.g. \citet{heess2015memory} incorporate recurrent neural
+Existing architectures, e.g., \citet{heess2015memory} incorporate recurrent neural
 architectures and have demonstrated a capacity to learn partially-observed
 tasks. However, we demonstrate that these architectures are only capable of
 mastering instructions up to a certain length. Moreover, these architectures do not
@@ -190,7 +190,7 @@ to instructions multiple times the length of the longest training instructions.
 \section{Related Work}
 Our work builds heavily on the work of OLSK. That work considered
 only sequential subtasks and did not address branching conditions. Recent work,
-namely \citet{sun2020program} consider tasks with branching statements similar
+namely \citet{sun2020program}, consider tasks with branching statements similar
 to this work but assumes the existence of a pretrained parser, and uses
 supervised learning to learn to evaluate conditions, which requires either a
 dataset of observations and conditions with corresponding evaluations or a
@@ -376,7 +376,7 @@ thin, draw,
   %\draw[->] (samples1)      -> node[right] {\tiny sample}            (sample);
 \end{tikzpicture}
 \caption{\textbf{Encoding of instructions:} Architecture for
-  mapping instruction $\mathbf{I}$ to pointer transition values $d_t$. Note that Note that $\mathbf{P}$ contains $\ell$ such distributions and
+  mapping instruction $\mathbf{I}$ to pointer transition values $d_t$.  Note that $\mathbf{P}$ contains $\ell$ such distributions and
 $\tilde{\mathbf{u}}_t$ chooses among them.}
   \label{schematic1}
   \end{subfigure}
@@ -453,8 +453,9 @@ thin, draw,
 
 \end{tikzpicture}
 \caption{\textbf{Generation of subtask parameter $\mathbf{g}_t$ and pointer
-  delta $d_t$:} This architecture executes every time step in order to generate
-subtask parameters and move the internal memory pointer $p_t$. Note that $p_{t+1} = p_t + d_t$.}
+  delta $d_t$:} This diagram depicts the flow of information every time-step
+  from memory $\mathbf{M}$, pointer $p_t$, and observation $\mathbf{x}_t$ to 
+subtask parameters $\mathbf{g}_t$ and pointer movements $d_t$. Note that $p_{t+1} = p_t + d_t$.}
 \end{subfigure}
 \hfill
 \begin{subfigure}{.3\textwidth}
@@ -499,14 +500,14 @@ thin, draw,
 
 \section{Problem Formulation}
 
-In order to study the problem of instructions with control-flow, we
-study use a Domain Specific Language, similar to \citet{sun2020program}.
+The instructions studied in this work take the form of a
+Domain Specific Language, similar to \citet{sun2020program}.
 At the beginning of an episode our agent observes a numerical representation of
 the instruction $\mathbf{I} \in\mathcal{I}$. Each time-step the agent also receives an observation of the
 environment $\mathbf{x}_t \in\mathcal{O}$. 
 
 We also assume a pretrained lower-level agent that will perform whatever subtask our
-upper-level agent gives to it. Each time step $t$, the policy $\pi_\theta$ of the upper-level agent
+upper-level agent gives to it. Each time-step $t$, the policy $\pi_\theta$ of the upper-level agent
 maps the instruction
 $\mathbf{I}$ and
 observation $\mathbf{x}_t$ to a discrete subtask parameter
@@ -531,11 +532,11 @@ where an interaction corresponds to \textit{visit}, \textit{pickup}, or
 In keeping with OLSK, our environment consists of a gridworld in which
 objects spawn randomly at the beginning of an episode. In order to perform a
 subtask, the agent must navigate to the object, and perform the appropriate
-interaction (visit, pickup, or transform), which each affect the environment in
+interaction (visit, pickup, or transform), each of which affect the environment in
 a different way:
 \begin{itemize}
   \item \textit{Pickup} makes the object disappear. 
-  \item \textit{Transform} transfors the object into a special \textit{ice}
+  \item \textit{Transform} transforms the object into a special \textit{ice}
     object.
   \item \textit{Visit} leaves the object unchanged.
 \end{itemize}
@@ -553,7 +554,7 @@ a different way:
     %\STATE max graph arity $w \in \mathbb{N}$,
     %\STATE hidden-state size $h \in \mathbb{N}$,
     %\STATE embedded instruction matrix $\mathbf{M} \in \mathbb{R}^{n\times h}$,
-    %\STATE observation $\mathbf{x}_t \in \mathbb{R}^{m}$ for each time step
+    %\STATE observation $\mathbf{x}_t \in \mathbb{R}^{m}$ for each time-step
     %$t$ of episode.
     %\FOR{each episode}
     %\STATE $p_0 \gets 0$
@@ -621,7 +622,7 @@ key insights:
     chooses the next line by ``scanning'' a learned representation of the  instruction and
     jumping to the next occurrence of some information in the learned
     representation, instead of basing the choice of movement on
-    the length or direction of movement.
+    its length or direction.
   \item \textbf{Instruction Rolling:} Our agent shifts or ``rolls'' the learned representation of the instruction
     specification so that the agent always chooses movements of the internal memory pointer
     relative to the current active line.
@@ -631,7 +632,7 @@ key insights:
 \label{internal-memory-pointer}
 As in OLSK, the archicture maps a $K$-length instruction
 $\mathbf{I}$ to
-$\mathbf{M} \in K\times H$ using ``Bag-of-words'' style
+$\mathbf{M} \in K\times H$ using ``Bag-of-words''-style
 embeddings applied to each line, where $H$ is the size of the embedding.  Each line is
 a list of words $\mathbf{l}_k = \left(w^k_1,\dots,w^k_{|\mathbf{l}_k|}\right)$ and each instruction is
 a list of lines $\mathbf{I} = \left(\mathbf{l}_1,\dots,\mathbf{l}_{K}\right)$. Note that a
@@ -724,7 +725,7 @@ where $f_\theta$ is a convolutional neural network. Whereas the
 OLSK architecture
 projects $\mathbf{h}_{t}$ to the one-step convolution operator described in
 section \ref{internal-memory-pointer}, we project $\mathbf{h}_t$ to $\mathbf{u}_t\in \mathbb{R}^\ell$, a weight vector
-used to choose among paths previously encoded from the instruction. Thus the final
+used to choose among paths previously encoded from the instruction. Thus, the final
 distribution over next lines is
 $\Cat(\mathbf{P}_{p_t}\tilde{\mathbf{u}}_t)$, where $\tilde{\mathbf{u}}_t =
 \softmax\left(\mathbf{u}_t\right)$.
@@ -744,30 +745,30 @@ The relevance to our architecture is that the encoded instruction $\mathbf{M}$ i
 $p_t$ before feeding it to the bidirectional GRU. In other words, the forward GRU takes lines in the
 order $(p_t, p_t + 1, \dots, K, 1, \dots, p_t - 1)$, running from the current
 line, wrapping around the last line of the instruction, and returning to the line
-before the current line. Thus the operations described in section \ref{scanning} are all performed
+before the current line. Thus, the operations described in section \ref{scanning} are all performed
 relative to the current active line in memory. That is, $\mathbf{B}_{i\cdot}$ in
 equation \ref{P} refers to the row of $\mathbf{B}$ corresponding to the $(p_t +
 i)^{\text{th}}$ index of $\mathbf{M}$.
 
 \subsection{Algorithm Description}
-In summary, each time step our algorithm 
+In summary, each time-step our algorithm 
 \begin{enumerate}
-  \item Rolls the embedded instruction $\mathbf{M}$ so that the index
+  \item rolls the embedded instruction $\mathbf{M}$ so that the index
     corresponding to the pointer $p_t$ is first.
-  \item Passes the embedded instruction through a bidirectional GRU in order to
+  \item passes the embedded instruction through a bidirectional GRU in order to
     incorporate global context information.
-  \item Uses the \texttt{scan} function to produce $\ell$ distributions with
+  \item uses the \texttt{scan} function to produce $\ell$ distributions with
     dimension $2K$ (see Algorithm \ref{scan} for pseudocode).
-  \item Passes the current observation and the $p_t^{\text{th}}$ index of
+  \item passes the current observation and the $p_t^{\text{th}}$ index of
     $\mathbf{M}$ through a GRU controller in order to generate hidden state
     $\mathbf{h}_t$.
-  \item Projects $\mathbf{h}_t$ to the  $\ell$-dimensional probability vector
+  \item projects $\mathbf{h}_t$ to the  $\ell$-dimensional probability vector
     $\mathbf{u}$ and to the distribution from which the next subtask parameter
     $\mathbf{g}_t$ is sampled.
-  \item Uses $\tilde{\mathbf{u}} = \softmax(\mathbf{u})$ to produce a weighted
+  \item uses $\tilde{\mathbf{u}} = \softmax(\mathbf{u})$ to produce a weighted
     sum of the $\ell$ distributions in matrix $\mathbf{P}$. Intuitively,
     $\tilde{\mathbf{u}}$ chooses among the outgoing edges from the current node.
-  \item Uses the resulting distribution to sample $d_t$ which is used to produce
+  \item uses the resulting distribution to sample $d_t$ which is used to produce
     $p_{t+1} = p_t + d_t$.
 \end{enumerate}
 Pseudocode is provided in Algorithm ~\ref{algo}.
@@ -856,7 +857,7 @@ c_g)\mathbf{g}_{t-1}$ and  $p_t = c_p\tilde{p}_t + (1 - c_p)p_{t-1}$.
     when the gate values are 1.
 \end{enumerate}
 
-Psuedocode for the full algorithm used on the complex environment is provided in
+Pseudocode for the full algorithm used on the complex environment is provided in
 Appendix \ref{full-algorithm}.
 
 \subsection{Baselines}
@@ -866,7 +867,7 @@ test their effectiveness. We present five baselines:
   \item \textbf{No scan:} This baseline removes the instruction scanning feature by
     taking the last output of $\BIGRU(\mathbf{M}^{p_t})$ and projecting it to
     a distribution over possible forward and backward pointer movements.
-    Movements that go beyond the beggining or end of the instruction are clipped.
+    Movements that go beyond the beginning or end of the instruction are clipped.
   \item \textbf{No roll:} This baseline does not roll $\mathbf{M}$ before feeding
     it to the bidirectional GRU as described in section \ref{rolling}.
   \item \textbf{No roll or scan:} This baseline combines both ablations.
@@ -887,7 +888,7 @@ test their effectiveness. We present five baselines:
     longer instructions because the controller requires fixed-length inputs. We
     therefore present only training results for this architecture.
 \end{itemize}
-Psuedocode for all the baselines is also included in Appendix \ref{baselines}.
+Pseudocode for all the baselines is also included in Appendix \ref{baselines}.
 
 \subsection{Minimal Environment}
 In the minimal setting, subtasks are not
@@ -895,7 +896,7 @@ temporally extended -- as soon as the agent outputs the correct subtask
 parameter, the subtask is complete and the external program counter advances.
 Moreover, conditions are evaluated according to a simple ``condition bit'' which
 is randomly 1 or 0, with 50\% probability. If the condition bit is 1,
-\texttt{if}-conditions and \texttt{while}-conditions pass, otherwise they fail.
+\texttt{if}-conditions and \texttt{while}-conditions pass; otherwise they fail.
 
 \subsection{Complex Environment}
 In this setting, the agent dictates subtask parameters to a pretrained
@@ -906,7 +907,7 @@ subtask parameter chosen by the higher-level agent. Thus, subtasks may take seve
 complete. Moreover, conditions are parameterized by \textit{objects} and they
 are evaluated according to whether the object exists. For example, the statement
 \texttt{If cat} evaluates to true, if there is a cat somewhere in the
-environment, and false otherwise.
+environment, and to false otherwise.
 
 
  
@@ -937,9 +938,9 @@ With this caveat, a few broad conclusions can be drawn from the experimental
 results. As one would expect, evaluation performance lags behind training
 performance since errors are compounded on the longer instructions -- an
 instruction that is twice as long offers twice as many opportunities to make a
-mistake. Consequently strong performance on the evaluation tasks requires
+mistake. Consequently, strong performance on the evaluation tasks requires
 nearly flawless performance on the training instruction. Any architecture that fails to
-converge on the training tasks will have demonstrate dismal perfomance on the
+converge on the training tasks will have demonstrate dismal performance on the
 evaluation tasks.  We observe that all architectures with both an internal memory pointer and the
 capacity to move from any memory index to any other memory index are able to
 achieve near optimal performance on their training tasks. 
@@ -955,7 +956,7 @@ to navigate to the next active line if it comes long after the current line due
 to failed condition blocks).
 
 We attribute some of these failures to artifacts that can develop in recurrent
-architectures -- spurious correlations with past observations may form leading
+architectures -- spurious correlations with past observations may form, leading
 to local optima that may take a long time to escape.
 
 \subsubsection{No roll}
@@ -964,7 +965,7 @@ generic, no longer a function of the input instruction. The reason is that there
 is not way for the bidirectional GRU to know the current index of the memory pointer 
 and what jumps might be appropriate from there (whereas with the roll operation,
 the current index of the memory pointer is always the first input to the
-bidirectional GRU). Thus the agent learns a series of standard movements common
+bidirectional GRU). Thus, the agent learns a series of standard movements common
 in the randomly generated instructions -- move forward one line (the most common
 movement), move backward two lines (the mean length of a while loop is two
 lines), etc.
