@@ -236,7 +236,12 @@ EndWhile to the list) and else-clauses (we add EndIf).
 
 \subsection{Spawning of world objects}
 At the beginning of each episode, subtasks are generated at random (with one caveat, discussed later) using two of the four objects  chosen at random. 
-For each subtask in the instruction, we take the corresponding object and place it randomly in the gridworld. The reason for excluding half of the objects when generating the subtasks is to ensure that the agent has sufficient exposure to failing conditional statements\footnote{Recall that conditions are evaluated according to whether or not an object exists. We found that unless some objects were witheld, conditions nearly always passed, making it very difficult for the agent to learn to correctly evaluate the few remaining conditions that failed.} In order to prevent infinite loops, one line in every while block is replaced with either a pickup or transform subtask (chosen randomly) with the object upon which the while-statement is conditioned. 
+For each subtask in the instruction, we take the corresponding object and place
+it randomly in the gridworld. The reason for excluding half of the objects when
+generating the subtasks is to ensure that the agent has sufficient exposure to
+failing conditional statements\footnote{Recall that conditions are evaluated
+according to whether or not an object exists. We found that unless some objects
+were withheld, conditions nearly always passed, making it very difficult for the agent to learn to correctly evaluate the few remaining conditions that failed.} In order to prevent infinite loops, one line in every while block is replaced with either a pickup or transform subtask (chosen randomly) with the object upon which the while-statement is conditioned. 
 
 
 \section{Training details}
