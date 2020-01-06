@@ -44,6 +44,7 @@
 \DeclareMathOperator{\roll}{roll}
 \DeclareMathOperator{\scan}{scan}
 \DeclareMathOperator{\softmax}{softmax}
+\DeclareMathOperator{\clip}{clip}
 % Use the following line for the initial blind version submitted for review:
 %\usepackage{icml2019}
 
@@ -135,13 +136,13 @@ Instructions}
  Many different factors contribute to the
 complexity of plausible instructions. In this work, we focus on the problem of
 control flow in instructions comprising multiple subtasks. Whereas existing work
-\cite{oh2017zero} (ZTG) studied problems in which the succession of subtasks was
+\cite{oh2017zero} (henceforth, referred to as OLSK) studied problems in which the succession of subtasks was
 sequential, this work studies problems in which conditions in the environment
 determine succession. Concretely, we examine problems in which programmatic
 control-flow statements, e.g. \texttt{if} and \texttt{while}, determine the next subtask
 that must be performed by the agent. 
 
-In keeping with ZTG, we study instructions in which the observation does
+In keeping with OLSK, we study instructions in which the observation does
 not include explicit information about the current subtask to be performed.
 Therefore the agent must infer, based on the history of observations, which
 subtask is currently active. This presents the agent three learning challenges:
@@ -162,7 +163,7 @@ generalize at all to instructions longer than those in the training set. This pa
 to instructions multiple times the length of the longest training instructions.
 
 \begin{figure}[t]
-\vskip 0.2in
+\vskip 0.1in
   \centering
   \begin{subfigure}{.2\columnwidth}
     \centering
@@ -195,25 +196,25 @@ to instructions multiple times the length of the longest training instructions.
   \end{subfigure}%
   \hfill
   \caption{Example instruction with environment}
-\vskip -0.4in
+\vskip -0.3in
 \end{figure}
 
 \section{Related Work}
-\subsection{Instructional tasks}
-Our work builds heavily on the work of ZTG. That work considered
+%\subsection{Instructional tasks}
+Our work builds heavily on the work of OLSK. That work considered
 only sequential subtasks and did not address branching conditions. Recent work,
-namely \citet{sun2020program} considers tasks with branching statements similar
+namely \citet{sun2020program} consider tasks with branching statements similar
 to this work but assumes the existence of a pretrained parser, and uses
 supervised learning to learn to evaluate conditions, which requires either a
 dataset of observations and conditions with corresponding evaluations or a
 hand-engineered mechanism for assessing the ground-truth of conditional
-statements. \citet{sohn2018hierarchical} investigates tasks corresponding to a
+statements. \citet{sohn2018hierarchical} investigate tasks corresponding to a
 ``subtask graph'' which encodes preconditions. Since a subtask may have multiple
 preconditions, with either all or at least one of them needing to be performed
 as prerequisites for certain other subtasks, this work is similar to ours in the
 sense of exploring non-linear subtask sequences. However, this work does not
 explicitly address the problem of conditionals or looping logic in tasks.
-\citet{zhang2018composable} considers tasks specified by ``attributes'' instead
+\citet{zhang2018composable} consider tasks specified by ``attributes'' instead
 of subtasks, though the two are conceptually similar. Subtasks are ordered
 according to a learned transition function, which ends up resembling the
 prerequisites from \citet{sohn2018hierarchical}. 
@@ -541,7 +542,7 @@ where an interaction corresponds to \textit{visit}, \textit{pickup}, or
 \textit{sheep}, or \textit{goat}.
 
 \subsection{Environment}
-In keeping with ZTG, our environment consists of a gridworld in which
+In keeping with OLSK, our environment consists of a gridworld in which
 objects spawn randomly at the beginning of an episode. In order to perform a
 subtask, the agent must navigate to the object, and perform the appropriate
 interaction (visit, pickup, or transform), which each affect the environment in
@@ -626,7 +627,7 @@ its ability to generalize to longer instructions. Our architecture incorporates 
 key insights:
 
 \begin{enumerate}
-  \item \textbf{Internal memory pointer:} Borrowing from ZTG, our architecture incorporates an
+  \item \textbf{Internal memory pointer:} Borrowing from OLSK, our architecture incorporates an
     internal memory pointer that learns to track the agent's progress through
     the larger instruction.
   \item \textbf{Instruction Scanning:} When moving the internal memory pointer, the agent
@@ -641,7 +642,7 @@ key insights:
 
 \subsection{Internal memory pointer}
 \label{internal-memory-pointer}
-As in ZTG, the archicture maps a $K$-length instruction
+As in OLSK, the archicture maps a $K$-length instruction
 $\mathbf{I}$ to
 $\mathbf{M} \in K\times H$ using ``Bag-of-words'' style
 embeddings applied to each line, where $H$ is the size of the embedding.  Each line is
@@ -654,7 +655,7 @@ embeddings are summed:
   \mathbf{M}_k = \sum_{i=1}^{|\mathbf{l}_k|} \phi\left(w^k_i\right)
 \end{equation}
 
-In ZTG, the
+In OLSK, the
 upper-level agent chooses 
 subtask parameters as a function of a weighted sum of these
 embeddings and learns a convolution operator 
@@ -722,17 +723,18 @@ $k$, concentrically moving away from the first index, and stopping at the first 
 As section \ref{rolling} will explain, $\mathbf{B}_{1j}$ may
 correspond to an index other than the first for $\mathbf{I}$ and $\mathbf{M}$.
 
-As in ZTG, movements of the internal memory pointer are a learned
+As in OLSK, movements of the internal memory pointer are a learned
 function of the history of selections in memory, of actions and of observations.
 Concretely, we generate a hidden state by feeding all of these values each time
 step through a Gated Recurrent Network \citet{ChoMGBSB14}:
 \begin{equation}
+  \label{gru}
   \mathbf{h}_t = \GRU\left(f_\theta\left(\mathbf{x}_t\right),
     \mathbf{M}_{p_{t-1}}, \mathbf{g}_{t-1},
   \mathbf{h}_{t-1}\right)
 \end{equation}
 where $f_\theta$ is a convolutional neural network. Whereas the
-ZTG architecture
+OLSK architecture
 projects $\mathbf{h}_{t}$ to the one-step convolution operator described in
 section \ref{internal-memory-pointer}, we project $\mathbf{h}_t$ to $\mathbf{u}_t\in \mathbb{R}^\ell$, a weight vector
 used to choose among paths previously encoded from the instruction. Thus the final
@@ -816,16 +818,59 @@ section \ref{results}.}
 
 \begin{figure}[t]
 \vskip 0.2in
-\centerline{\includegraphics[width=\columnwidth]{simple-rewards}}
+\centerline{\includegraphics[width=\columnwidth]{simple-rewards.png}}
 \caption{Training performance of the ``simple architecture'' on the minimal
-environment. Each line corresponds to the maximum number from which
-instruction line-lengthes were drawn. For example the 10 line corresponds to an
-agent trained on instructions whose length was sampled uniformly between 1 and
-10. Note that all agents trained on tasks with lengths greater than 5 fail to
+environment. Each line corresponds to the number of lines per instruction.
+Note that all agents trained on tasks with lengths greater than 5 fail to
 converge to the maximum possible reward of 1.}
-\label{grammer}
+\label{simple-rewards}
 \vskip -0.2in
 \end{figure}
+
+\subsection{Implementation details}
+All agents were trained using the Proximal Policy Optimization algorithm
+\cite{schulman2017proximal}. Details are provided in Appendix \ref{training}.
+Each agent generates behavior using 150 parallel processes. Each time-step the
+observation is fed through a single-layer convolutional network with kernel-size
+1 followed by max-pooling layer. We use a single layer perceptron with a
+Rectified Linear Unit \cite{nair2010rectified} to project the GRU output
+$\mathbf{h}_t$ to both $\mathbf{u}$ and the distribution over
+subtask parameters (see equation \ref{gru}).
+
+For the complex environment, a few modifications were made to the base algorithm
+inspired by OLSK. Because of the temporally-extended nature of subtasks, we
+found it beneficial to incorporate gates into the algorithm that prevent changes
+to certain internal parameters, especially when a subtask is not yet complete.
+Specifically, OLSK use a gate to regulate changes to the internal memory
+pointer, the hidden state, and the subtask parameter.
+We make two changes to the architecture described in OLSK:
+\begin{enumerate}
+  \item OLSK use ``soft-gates'', producing a scalar value $c_t \in (0, 1)$ that
+    interpolates old values with new values. Thus when $c_t \approx 0$, the old
+    value is retained and when $c_t \approx 1$, the new value is adopted. Toward
+    the end of training, 
+    OLSK recommend switching to hard-updates, sampling values from a learned
+    distribution which is trained with reinforcement learning. However we find
+    that it is beneficial to use hard-updates from the beginning of training.
+  \item Instead of using a single gate, we use a separate gate for the
+    subtask parameter and for the internal memory pointer.
+Concretely, we project $\mathbf{h}_t$ to two Bernoulli distributions, fom which
+we sample the gate values, $c_g$ and $c_p$. Having produced tentative new values
+for the subtask parameter $\tilde{\mathbf{g}}_t$ and the internal pointer
+$\tilde{p}_t$, we set $\mathbf{g}_t = c_g\tilde{\mathbf{g}}_t + (1 -
+c_g)\mathbf{g}_{t-1}$ and  $p_t = c_p\tilde{p}_t + (1 - c_p)p_{t-1}$.
+
+  \item Like OLSK, we divide the recurrent hidden state $\mathbf{h}_t$ into two
+    parts, one updated every time-step and one updated only when the value of
+    the gates is one. However, we condition the distribution from which the gate
+    values are sampled exclusively on the hidden state that is updated each
+    time-step and we condition $V_t$ (the value estimate), $\mathbf{u}_t$ and
+    the subtask parameter distribution on the hidden state that is only updated
+    when the gate values are 1.
+\end{enumerate}
+
+Psuedocode for the full algorithm used on the complex environment is provided in
+Appendix \ref{full-algorithm}.
 
 \subsection{Baselines}
 In our experiments, we ablate the main features of our algorithm in order to
@@ -844,13 +889,16 @@ test their effectiveness. We present five baselines:
     which directly outputs a distribution over actions $\pi_\theta(\cdot)$ and a
     value $V_t$. We generate $\mathbf{H}'$ by feeding the embedded instruction
     $\mathbf{M}$ through a bidirectional GRU and concatenating the last outputs
-    in both directions. See figure \ref{no-pointer}. \footnote{Note that $\mathbf{M}$
-    must be fed through a bidirectional GRU before feeding to the controller,
-  because the controller requires fixed-length inputs. Padding is not a solution
-to this problem because the archicture would then have no hope of generalizing
-to longer unseen instructions.}
+    in both directions. See figure \ref{no-pointer}. 
   \item \textbf{Oh et. al.} This baseline reproduces the algorithm described in
-    ZTG.
+    OLSK.
+  \item The ``simple'' architecture for which figure
+    \ref{simple-rewards} depicts performance on training tasks. This
+    architecture is almost identical to the \textbf{No Pointer} baseline except
+    that the embedded instruction $\mathbf{M}$ is fed directly to the GRU
+    controller. Note that this prevents the architecture from generalizing to
+    longer instructions because the controller requires fixed-length inputs. We
+    therefore present only training results for this architecture.
 \end{itemize}
 Psuedocode for all the baselines is also included in Appendix \ref{baselines}.
 
@@ -874,8 +922,6 @@ are evaluated according to whether the object exists. For example, the statement
 environment, and false otherwise.
 
 
-\subsection{Training procedure}
-To do
  
 \subsection{Results}
 \label{results}
@@ -885,14 +931,73 @@ Unless otherwise specified, each graph plots the rewards that these architecture
 length} instructions.
  Note that all graphs depict the performance of agents trained on instructions with lengths drawn uniformly between 1 and 10. Thus
 the graphs corresponding to longer instructions measure the generalization
-capability of each architecture. Each agent generates behavior using 150
-parallel processes. Thus each
-line is the average reward achieved by these parallel processes over the course of
+capability of each architecture. Each line is the average reward achieved by the
+150 parallel behavior processes over the course of
 200 steps of evaluation. The error bars represent five separate distinct random
 seeds ($150 \times 5$ total processes).
 
 \subsection{Analysis}
+Identifying failure modes can be difficult with both our algorithm and the
+baselines because identifiable failures may be far downstream of the root cause.
+For example, we observe that on the longer evaluation instructions, the
+\textbf{No roll} baseline consistently mis-evaluates conditions, especially in
+while loops. However, the architecture responsible for evaluating conditions is
+identical between the \textbf{No roll} baseline and our architecture. We infer that this
+part of the architecture was somehow poorly trained due to failures in other parts
+of the architecture that do differ somehow from our architecture.
+
+With this caveat, a few broad conclusions can be drawn from the experimental
+results. As one would expect, evaluation performance lags behind training
+performance since errors are compounded on the longer instructions -- an
+instruction that is twice as long offers twice as many opportunities to make a
+mistake. Consequently strong performance on the evaluation tasks requires
+nearly flawless performance on the training instruction. Any architecture that fails to
+converge on the training tasks will have demonstrate dismal perfomance on the
+evaluation tasks.  We observe that all architectures with both an internal memory pointer and the
+capacity to move from any memory index to any other memory index are able to
+achieve near optimal performance on their training tasks. 
+
+\subsubsection{Our architecture}
+Reviewing the behavior of a fully trained agent, we did not observe any
+prominent error trends unique to our architecture. That is, certain failure
+modes emerged among all the architectures but were less prominent in ours,
+accounting for the improved performance. Common points of failure include
+terminating a while loop early or late, executing the previous action instead of
+the current, or missing a long jump (that is, the architecture sometimes fails
+to navigate to the next active line if it comes long after the current line due
+to failed condition blocks).
+
+We attribute some of these failures to artifacts that can develop in recurrent
+architectures -- spurious correlations with past observations may form leading
+to local optima that may take a long time to escape.
+
+\subsubsection{No roll}
+%No roll: jumping to the wrong location (esp. in while loop) mis-evaluating while
+%loop
 To do
+
+
+\subsubsection{No pointer baseline}
+On expectation, this baseline succeeds on its first subtask and fails
+thereafter. Instead of consistently outputing a single subtask parameter until
+the associated subtask is complete, the agent chooses a different subtask
+parameter nearly every time-step, mostly choosing among those that correspond to
+sutbasks appearing early in the instruction.
+
+Any architecture that succeeds on the kinds of tasks that we describe in this
+work must learn a very complex representation of the instruction that encodes
+all possible pathways through it. We hypothesize that the search space for
+representations is sufficiently large and the number of local optima in this
+space sufficiently numerous that an unstructured recurrent network like a GRU
+either has little chance of discovering that representation or a more extensive
+hyperparameter search is necessary than that undertaken in this work.
+
+\subsubsection{OLSK baseline}
+This baseline learns a strategy of sweeping the attention weights across
+the entire instruction and essentially delegating the choice of action entirely
+to the GRU controller. This strategy encounters many of the same difficulties
+and the \textbf{No pointer} baseline, failing to properly encode the possible
+paths through the instruction and roughly approximating them with high error.
 
 \section{Conclusion}
 This work studies a special but important subset of multi-task reinforcement
