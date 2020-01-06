@@ -185,6 +185,7 @@ to instructions multiple times the length of the longest training instructions.
 \vskip -0.3in
 \end{figure}
 \section{Related Work}
+\subsection{Tasks with subtasks}
 Our work builds heavily on the work of OLSK. That work considered
 only sequential subtasks and did not address branching conditions. Recent work,
 namely \citet{sun2020program}, consider tasks with branching statements similar
@@ -202,6 +203,28 @@ explicitly address the problem of conditionals or looping logic in tasks.
 of subtasks, though the two are conceptually similar. Subtasks are ordered
 according to a learned transition function, which ends up resembling the
 prerequisites from \citet{sohn2018hierarchical}. 
+
+\subsection{Program execution}
+To our knowledge, some of the earliest work addressing the problem of program
+execution using end-to-end differentiable architectures was that of
+\citet{graves2014neural}. This work proposed an architecture that used
+``external'' addressable memory to learn mappings from symbolic inputs to
+outputs in a programmatic or algorithmic fashion. Crucially, this work
+demonstrated the capacity of this architecture to generalize beyond the training
+set, unlike conventional architectures like the Long Short-Term Memory
+architecture
+\cite{hochreiter1997long}. In keeping with this line of research,
+\citet{reed2015neural}
+develop an architecture that learns to execute complex programs using execution
+traces and supervised learning. This architecture maintains a bank of program
+descriptors which the agent maps to either primitive actions or recursive calls
+to learned subprograms. The kinds of tasks that this architecture performs do
+not explicitly incorporate control-flow of the kind we study in this paper.
+\citet{bovsnjak2017programming} extend this work using similar tasks but
+specified using the Forth programming language. This work describes an
+algorithm that essentially encodes the mechanisms of a Forth interpretter in
+a Neural-Turing-Machine-style architecture.
+
 
 \begin{figure*}[t]
 \centering
