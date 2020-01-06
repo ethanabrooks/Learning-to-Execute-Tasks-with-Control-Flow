@@ -890,7 +890,7 @@ test their effectiveness. We present five baselines:
     value $V_t$. We generate $\mathbf{H}'$ by feeding the embedded instruction
     $\mathbf{M}$ through a bidirectional GRU and concatenating the last outputs
     in both directions. See figure \ref{no-pointer}. 
-  \item \textbf{Oh et. al.} This baseline reproduces the algorithm described in
+  \item \textbf{OLSK} This baseline reproduces the algorithm described in
     OLSK.
   \item The ``simple'' architecture for which figure
     \ref{simple-rewards} depicts performance on training tasks. This
@@ -972,10 +972,23 @@ architectures -- spurious correlations with past observations may form leading
 to local optima that may take a long time to escape.
 
 \subsubsection{No roll}
-%No roll: jumping to the wrong location (esp. in while loop) mis-evaluating while
-%loop
+The advantage of rolling is that the agent favors lines in the instruction that
+are closer to the current line over lines that are more distant. Without
+rolling, the bidirectional task-encoding GRU must 
+No roll: jumping to the wrong location (esp. in while loop) mis-evaluating while
+loop
 To do
 
+\subsubsection{No scan / No roll or scan}
+We observe that agents that do not use the scan function tend to learn a
+strategy that involves walking the memory pointer linearly through the
+instruction, outputting no-op actions inside failing condition blocks. While in
+principle this is a valid strategy for executing instructions of the kind
+described in this document, we observe a common tendency on the part of these agents to 
+advance the memory pointer prematurely (before performing the appropriate
+subtask) or to mis-evaluate while loops. We hypothesize that oveloading the
+GRU controller complicates the learning process, dissipating the effects of the
+learning signal, and exposing the learning process to a variety of local optima.
 
 \subsubsection{No pointer baseline}
 On expectation, this baseline succeeds on its first subtask and fails
@@ -1008,15 +1021,12 @@ that future work will explore instructions that involve greater complexity,
 including conditionals with more complex predicates, higher-dimensional
 observations, and noisy natural-language inputs.
 
-\section{To do}
-\begin{itemize}
-  \item Failure analysis
-  \item Add description of gates.
-  \item fill out appendix
-  \item Add more related works
-  \item Add diagram of edge length performance.
-  \item If time permits, add other baselines to single-step environment.
-\end{itemize}
+%\section{To do}
+%\begin{itemize}
+  %\item Add more related works
+  %\item Add diagram of edge length performance.
+  %\item If time permits, add other baselines to single-step environment.
+%\end{itemize}
 
 %\section{Electronic Submission}
 %\label{submission}
