@@ -20,9 +20,7 @@ f%%%%%%%% ICML 2019 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
 \usetikzlibrary{automata,positioning}
 \usetikzlibrary{decorations.pathreplacing}
 \usetikzlibrary{decorations.pathmorphing}
-\usetikzlibrary{snakes}
 
-\tikzset{snake it/.style={decorate, decoration=snake}}
 
 \lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
 \lstset{framextopmargin=50pt} % ,frame=bottomline}
@@ -39,40 +37,6 @@ f%%%%%%%% ICML 2019 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
 \newcommand{\setalglineno}[1]{%
   \setcounter{ALC@line}{\numexpr#1-1}}
 
-\newcommand{\algo}[3][
-    \STATE $V_t, \mathbf{u}_t, \mathbf{h}_t  \gets \GRU\left(\mathbf{x}_t, \mathbf{M}_{p_t}, \mathbf{h}_{t-1}\right)$
-    %\COMMENT{
-      %$\mathbf{\pi}_t \in \mathbb{R}^\mathcal{A}$. $V_t$ is the current value
-    %estimate. $\mathbf{u}_t\in \mathbb{R}^w$.}
-    \STATE $\mathbf{g}_{t} \sim \pi_\theta\left(\mathbf{h}_t\right)$
-    %\COMMENT{$\mathbf{g}_t$ is the current action}
-    \STATE $\tilde{\mathbf{u}}_{t} \gets \softmax\left(\mathbf{u}_t\right)$
-    \STATE $d_{t} \sim \Cat\left(\mathbf{P}_t\tilde{\mathbf{u}}_t\right)$ 
-    \STATE $p_{t + 1} \gets p_t + d_t$
-]
-{
-
-\begin{algorithm}[b]
-  \caption{#2}
-  \label{subtask-update}
-  \begin{algorithmic}[1]
-    \STATE {\bfseries Inputs:} $p_t, \mathbf{M} , \mathbf{x}_t, \mathbf{h}_{t-1}$
-    %\STATE number of lines per instruction $n \in \mathbb{N}$,
-    %\STATE max graph arity $w \in \mathbb{N}$,
-    %\STATE hidden-state size $h \in \mathbb{N}$,
-    %\STATE embedded instruction matrix $\mathbf{M} \in \mathbb{R}^{n\times h}$,
-    %\STATE observation $\mathbf{x}_t \in \mathbb{R}^{m}$ for each time step
-    %$t$ of episode.
-    %\FOR{each episode}
-    %\STATE $p_0 \gets 0$
-    %\COMMENT{begin episode attending to memory slot 0}
-    %\STATE $\mathbf{h}_0 \gets \mathbf{0}$
-    %\COMMENT{$\mathbf{h}_0\in \mathbb{R}^h$}
-    #3
-    #1
-  \end{algorithmic}
-\end{algorithm}
-}
 
 \DeclareMathOperator{\GRU}{GRU}
 \DeclareMathOperator{\BIGRU}{BI-GRU}
@@ -236,7 +200,7 @@ to instructions multiple times the length of the longest training instructions.
 \end{figure}
 
 \section{Related Work}
-\subsection{Instructional tasks}
+%\subsection{Instructional tasks}
 Our work builds heavily on the work of OLSK. That work considered
 only sequential subtasks and did not address branching conditions. Recent work,
 namely \citet{sun2020program} consider tasks with branching statements similar
@@ -294,10 +258,6 @@ minimum width=28mm,
 % The border:
 thin, draw,
 },
-      decoration = {snake,   % <-- added
-                    pre length=1pt,post length=1pt,% <-- for better looking of arrow,
-                    },
-                    main matrix/.style = {circle,draw,fill=#1,},
 ]
   \draw [decorate,decoration={brace}]
   (-30,67) -- (-30,77) node[midway,left,inner sep=.1ex,text
@@ -472,10 +432,6 @@ minimum width=24mm,
 % The border:
 thin, draw,
 },
-      decoration = {snake,   % <-- added
-                    pre length=1pt,post length=1pt,% <-- for better looking of arrow,
-                    },
-                    main node/.style = {circle,draw,fill=#1,},
 ]
   \node[memory,label={[xshift=-19.0mm]right:Memory $\mathbf{M}$}]
     (M) at (-3, 2) {};
@@ -535,10 +491,6 @@ minimum width=24mm,
 % The border:
 thin, draw,
 },
-      decoration = {snake,   % <-- added
-                    pre length=1pt,post length=1pt,% <-- for better looking of arrow,
-                    },
-                    main node/.style = {circle,draw,fill=#1,},
 ]
   \node[memory] (I) at (-5, -10) {$\mathbf{I}$};
   \node[memory] (M) at (-5, -4) {$\mathbf{M}$};
@@ -605,7 +557,22 @@ a different way:
 
 
 \section{Approach}
-\algo{Subtask update}{
+\begin{algorithm}[b]
+  \caption{Subtask update}
+  \label{algo}
+  \begin{algorithmic}[1]
+    \STATE {\bfseries Inputs:} $p_t, \mathbf{M} , \mathbf{x}_t, \mathbf{h}_{t-1}$
+    %\STATE number of lines per instruction $n \in \mathbb{N}$,
+    %\STATE max graph arity $w \in \mathbb{N}$,
+    %\STATE hidden-state size $h \in \mathbb{N}$,
+    %\STATE embedded instruction matrix $\mathbf{M} \in \mathbb{R}^{n\times h}$,
+    %\STATE observation $\mathbf{x}_t \in \mathbb{R}^{m}$ for each time step
+    %$t$ of episode.
+    %\FOR{each episode}
+    %\STATE $p_0 \gets 0$
+    %\COMMENT{begin episode attending to memory slot 0}
+    %\STATE $\mathbf{h}_0 \gets \mathbf{0}$
+    %\COMMENT{$\mathbf{h}_0\in \mathbb{R}^h$}
     \STATE $\mathbf{M}^{p_t} \gets \roll\left(\mathbf{M}, -p_t\right)$
     %\COMMENT{roll function rotates $\mathbf{M}$ around first
     %axis. $\mathbf{M}_t \in \mathbb{R}^h$}
@@ -614,7 +581,17 @@ a different way:
     \STATE ${\mathbf{P}_t \gets \scan\left(\mathbf{H}_t\right)}$
     %\COMMENT{$\mathbf{P}_t$ comprises $\ell$ $2K$-dimensional probability
     %distributions}
-}{}{}
+    \STATE $V_t, \mathbf{u}_t, \mathbf{h}_t  \gets \GRU\left(\mathbf{x}_t, \mathbf{M}_{p_t}, \mathbf{h}_{t-1}\right)$
+    %\COMMENT{
+      %$\mathbf{\pi}_t \in \mathbb{R}^\mathcal{A}$. $V_t$ is the current value
+    %estimate. $\mathbf{u}_t\in \mathbb{R}^w$.}
+    \STATE $\mathbf{g}_{t} \sim \pi_\theta\left(\mathbf{h}_t\right)$
+    %\COMMENT{$\mathbf{g}_t$ is the current action}
+    \STATE $\tilde{\mathbf{u}}_{t} \gets \softmax\left(\mathbf{u}_t\right)$
+    \STATE $d_{t} \sim \Cat\left(\mathbf{P}_t\tilde{\mathbf{u}}_t\right)$ 
+    \STATE $p_{t + 1} \gets p_t + d_t$
+  \end{algorithmic}
+\end{algorithm}
 \begin{algorithm}[b]
   \caption{Scan Function}
   \label{scan}
@@ -806,7 +783,7 @@ In summary, each time step our algorithm
   \item Uses the resulting distribution to sample $d_t$ which is used to produce
     $p_{t+1} = p_t + d_t$.
 \end{enumerate}
-Pseudocode is provided in Algorithm \ref{subtask-update}.
+Pseudocode is provided in Algorithm ~\ref{algo}.
 
 \section{Experiments}
 \label{experiments}

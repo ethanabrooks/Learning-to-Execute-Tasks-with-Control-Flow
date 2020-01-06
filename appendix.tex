@@ -39,7 +39,6 @@
 
 \begin{algorithm}[H]
   \caption{#2}
-  \label{subtask-update}
   \begin{algorithmic}[1]
     \STATE {\bfseries Inputs:} $p_t, \mathbf{M} , \mathbf{x}_t, \mathbf{h}_{t-1}$
     %\STATE number of lines per instruction $n \in \mathbb{N}$,
@@ -96,6 +95,7 @@ Instructions}
 
 \begin{document}
 \date{}
+\author{}
 \maketitle
 \section{Pseudocode for full algorithm used on ``complex'' task}
 \label{full-algorithm}
@@ -263,7 +263,6 @@ where $A_t$ denotes the advantage on time step $t$, $\theta$ denotes network par
 convolution hidden size   & 64     & 32      & 64      & 32              & 64         & 64         & 64     \\
 encoder hidden size       & 64     & 64      & 64      & 64              & 64         & 64         & 64     \\
 entropy coefficient       & 0.01   & 0.01    & 0.01    & 0.01            & 0.01       & 0.01       & 0.01   \\
-gate coefficient          & 0.001  & 0.001   & 0.001   & 0.001           & NA         & 0.0005     & NA     \\
 controller hidden size    & 32     & 32      & 32      & 32              & 32         & 32         & 32     \\
 learning rate             & 0.0025 & 0.0025  & 0.003   & 0.0025          & 0.0025     & 0.0025     & 0.0025 \\
 $\ell$                    & 6      & 6       & 7       & 7               & NA         & NA         & NA     \\
