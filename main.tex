@@ -187,13 +187,7 @@ to instructions multiple times the length of the longest training instructions.
 \section{Related Work}
 \subsection{Tasks with subtasks}
 Our work builds heavily on the work of OLSK. That work considered
-only sequential subtasks and did not address branching conditions. Recent work,
-namely \citet{sun2020program}, consider tasks with branching statements similar
-to this work but assumes the existence of a pretrained parser, and uses
-supervised learning to learn to evaluate conditions, which requires either a
-dataset of observations and conditions with corresponding evaluations or a
-hand-engineered mechanism for assessing the ground-truth of conditional
-statements. \citet{sohn2018hierarchical} investigate tasks corresponding to a
+only sequential subtasks and did not address branching conditions.  \citet{sohn2018hierarchical} investigate tasks corresponding to a
 ``subtask graph'' which encodes preconditions. Since a subtask may have multiple
 preconditions, with either all or at least one of them needing to be performed
 as prerequisites for certain other subtasks, this work is similar to ours in the
@@ -203,6 +197,7 @@ explicitly address the problem of conditionals or looping logic in tasks.
 of subtasks, though the two are conceptually similar. Subtasks are ordered
 according to a learned transition function, which ends up resembling the
 prerequisites from \citet{sohn2018hierarchical}. 
+
 
 \subsection{Program execution}
 To our knowledge, some of the earliest work addressing the problem of program
