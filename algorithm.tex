@@ -1,0 +1,96 @@
+%%%%%%%% ICML 2019 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
+
+\documentclass{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs} % for professional tables
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{amsmath, amsfonts}
+\usepackage{algorithm,float}
+\usepackage{lipsum}
+\usepackage{xr}
+
+\externaldocument{appendix}
+
+\usetikzlibrary{automata,positioning}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{decorations.pathmorphing}
+
+
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\lstset{framextopmargin=50pt} % ,frame=bottomline}
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2019} with \usepackage[nohyperref]{icml2019} above.
+\usepackage{hyperref}
+%\usepackage{cleveref}
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\newcommand{\setalglineno}[1]{%
+  \setcounter{ALC@line}{\numexpr#1-1}}
+
+
+\DeclareMathOperator{\GRU}{GRU}
+\DeclareMathOperator{\BIGRU}{BI-GRU}
+\DeclareMathOperator{\Cat}{categorical}
+\DeclareMathOperator{\roll}{roll}
+\DeclareMathOperator{\scan}{scan}
+\DeclareMathOperator{\softmax}{softmax}
+\DeclareMathOperator{\clip}{clip}
+% Use the following line for the initial blind version submitted for review:
+%\usepackage{icml2019}
+
+% If accepted, instead use the following line for the camera-ready submission:
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+
+
+\begin{document}
+
+
+
+\begin{algorithm}[b]
+  \caption{Subtask update}
+  \label{algo}
+  \begin{algorithmic}[1]
+    \STATE {\bfseries Inputs:} $p_t, \mathbf{M} , \mathbf{x}_t, \mathbf{h}_{t-1}$
+    %\STATE number of lines per instruction $n \in \mathbb{N}$,
+    %\STATE max graph arity $w \in \mathbb{N}$,
+    %\STATE hidden-state size $h \in \mathbb{N}$,
+    %\STATE embedded instruction matrix $\mathbf{M} \in \mathbb{R}^{n\times h}$,
+    %\STATE observation $\mathbf{x}_t \in \mathbb{R}^{m}$ for each time-step
+    %$t$ of episode.
+    %\FOR{each episode}
+    %\STATE $p_0 \gets 0$
+    %\COMMENT{begin episode attending to memory slot 0}
+    %\STATE $\mathbf{h}_0 \gets \mathbf{0}$
+    %\COMMENT{$\mathbf{h}_0\in \mathbb{R}^h$}
+    \STATE $\mathbf{M}^{p_t} \gets \roll\left(\mathbf{M}, -p_t\right)$
+    %\COMMENT{roll function rotates $\mathbf{M}$ around first
+    %axis. $\mathbf{M}_t \in \mathbb{R}^h$}
+    \STATE ${\mathbf{H}_t} \gets \BIGRU\left(\mathbf{M}^{p_t}\right)$
+    %\COMMENT{{$\mathbf{H}_t \in \mathbb{R}^{2n \times w \times h}$}}
+    \STATE ${\mathbf{P}_t \gets \scan\left(\mathbf{H}_t\right)}$
+    %\COMMENT{$\mathbf{P}_t$ comprises $\ell$ $2K$-dimensional probability
+    %distributions}
+    \STATE $V_t, \mathbf{u}_t, \mathbf{h}_t  \gets \GRU\left(\mathbf{x}_t, \mathbf{M}_{p_t}, \mathbf{h}_{t-1}\right)$
+    %\COMMENT{
+      %$\mathbf{\pi}_t \in \mathbb{R}^\mathcal{A}$. $V_t$ is the current value
+    %estimate. $\mathbf{u}_t\in \mathbb{R}^w$.}
+    \STATE $\mathbf{g}_{t} \sim \pi_\theta\left(\mathbf{h}_t\right)$
+    %\COMMENT{$\mathbf{g}_t$ is the current action}
+    \STATE $\tilde{\mathbf{u}}_{t} \gets \softmax\left(\mathbf{u}_t\right)$
+    \STATE $d_{t} \sim \Cat\left(\mathbf{P}_t\tilde{\mathbf{u}}_t\right)$ 
+    \STATE $p_{t + 1} \gets p_t + d_t$
+  \end{algorithmic}
+\end{algorithm}
+
+\end{document}
