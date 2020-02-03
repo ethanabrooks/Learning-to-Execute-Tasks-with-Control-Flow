@@ -127,15 +127,11 @@ specification may induce.
 
  Many different factors contribute to the
 complexity of plausible instructions. In this work, we focus on the problem of
-control flow in instructions comprising multiple subtasks. Whereas existing work
-\cite{oh2017zero} (henceforth, referred to as OLSK) studied problems in which the succession of subtasks was
-sequential, this work studies problems in which conditions in the environment
-determine succession. Concretely, we examine problems in which programmatic
-control-flow statements, e.g. \texttt{if} and \texttt{while}, determine the next subtask
-that must be performed by the agent. 
-
-In keeping with OLSK, we study instructions in which the observation does
-not include explicit information about the current subtask to be performed.
+control flow in instructions comprising multiple subtasks. Concretely, we examine problems in which programmatic
+control-flow statements, e.g. \texttt{if} and \texttt{while} are evaluated
+on the basis of observations of the environment and subsequently determine the subtask
+that the agent must perform. Another challenging feature of the environments
+that we study is that observations do not include explicit information about the current subtask to be performed.
 Therefore the agent must infer, based on the history of observations, which
 subtask is currently active. This presents the agent three learning challenges:
 \begin{enumerate}
@@ -192,7 +188,7 @@ to instructions multiple times the length of the longest training instructions.
 \end{figure}
 \section{Related Work}
 \subsection{Tasks with subtasks}
-Our work builds heavily on the work of OLSK. That work considered
+Our work builds heavily on the work of \cite{oh2017zero} (henceforth, referred to as OLSK). That work considered
 only sequential subtasks and did not address branching conditions. Recent work,
 namely \citet{sun2020program}, consider tasks with branching statements similar
 to this work but assumes the existence of a pretrained parser, and uses
@@ -556,7 +552,7 @@ where an interaction corresponds to \textit{visit}, \textit{pickup}, or
 \textit{sheep}, or \textit{goat}.
 
 \subsection{Environment}
-In keeping with OLSK, our environment consists of a gridworld in which
+Our environment consists of a gridworld in which
 objects spawn randomly at the beginning of an episode. In order to perform a
 subtask, the agent must navigate to the object, and perform the appropriate
 interaction (visit, pickup, or transform), each of which affect the environment in
@@ -642,7 +638,7 @@ its ability to generalize to longer instructions. Our architecture incorporates 
 key insights:
 
 \begin{enumerate}
-  \item \textbf{Internal memory pointer:} Borrowing from OLSK, our architecture incorporates an
+  \item \textbf{Internal memory pointer:} Our architecture incorporates an
     internal memory pointer that learns to track the agent's progress through
     the larger instruction.
   \item \textbf{Instruction Scanning:} When moving the internal memory pointer, the agent
@@ -657,7 +653,7 @@ key insights:
 
 \subsection{Internal memory pointer}
 \label{internal-memory-pointer}
-As in OLSK, the architecture maps a $K$-length instruction
+The architecture maps a $K$-length instruction
 $\mathbf{I}$ to
 $\mathbf{M} \in K\times H$ using ``Bag-of-words''-style
 embeddings applied to each line, where $H$ is the size of the embedding.  Each line is
@@ -670,7 +666,8 @@ embeddings are summed:
   \mathbf{M}_k = \sum_{i=1}^{|\mathbf{l}_k|} \phi\left(w^k_i\right)
 \end{equation}
 
-In OLSK, the
+This feature is similar to the internal memory pointer described in OLSK. In
+that work, the
 upper-level agent chooses 
 subtask parameters as a function of a weighted sum of these
 embeddings and learns a convolution operator 
@@ -738,7 +735,7 @@ $k$, concentrically moving away from the first index, and stopping at the first 
 As section \ref{rolling} will explain, $\mathbf{B}_{1j}$ may
 correspond to an index other than the first for $\mathbf{I}$ and $\mathbf{M}$.
 
-As in OLSK, movements of the internal memory pointer are a learned
+Movements of the internal memory pointer are a learned
 function of the history of selections in memory, of actions and of observations.
 Concretely, we generate a hidden state by feeding all of these values each time
 step through a Gated Recurrent Network \citet{ChoMGBSB14}:
@@ -748,10 +745,7 @@ step through a Gated Recurrent Network \citet{ChoMGBSB14}:
     \mathbf{M}_{p_{t-1}}, \mathbf{g}_{t-1},
   \mathbf{h}_{t-1}\right)
 \end{equation}
-where $f_\theta$ is a convolutional neural network. Whereas the
-OLSK architecture
-projects $\mathbf{h}_{t}$ to the one-step convolution operator described in
-section \ref{internal-memory-pointer}, we project $\mathbf{h}_t$ to $\mathbf{u}_t\in \mathbb{R}^\ell$, a weight vector
+where $f_\theta$ is a convolutional neural network. We project $\mathbf{h}_t$ to $\mathbf{u}_t\in \mathbb{R}^\ell$, a weight vector
 used to choose among paths previously encoded from the instruction. Thus, the final
 distribution over next lines is
 $\Cat(\mathbf{P}_{p_t}\tilde{\mathbf{u}}_t)$, where $\tilde{\mathbf{u}}_t =
@@ -843,6 +837,7 @@ converge to the maximum possible reward of 1.}
 \end{figure}
 
 \subsection{Implementation details}
+\label{implementation}
 All agents were trained using the Proximal Policy Optimization algorithm
 \cite{schulman2017proximal}. Details are provided in Appendix \ref{training}.
 Each agent generates behavior using 150 parallel processes. Each time-step the
@@ -853,36 +848,28 @@ $\mathbf{h}_t$ to both $\mathbf{u}_t$ and the distribution over
 subtask parameters (see equation \ref{gru}).
 
 For the complex environment, a few modifications were made to the base algorithm
-inspired by OLSK. Because of the temporally-extended nature of subtasks, we
-found it beneficial to incorporate gates into the algorithm that prevent changes
+in order to assist in the execution of temporally-extended subtasks. We found it beneficial to incorporate gates into the algorithm that prevent changes
 to certain internal parameters, especially when a subtask is not yet complete.
-Specifically, OLSK use a gate to regulate changes to the internal memory
-pointer, the hidden state, and the subtask parameter.
-We make two changes to the architecture described in OLSK:
-\begin{enumerate}
-  \item OLSK use ``soft-gates'', producing a scalar value $c_t \in (0, 1)$ that
-    interpolates old values with new values. Thus when $c_t \approx 0$, the old
-    value is retained and when $c_t \approx 1$, the new value is adopted. Toward
-    the end of training, 
-    OLSK recommend switching to hard-updates, sampling values from a learned
-    distribution which is trained with reinforcement learning. However we find
-    that it is beneficial to use hard-updates from the beginning of training.
-  \item Instead of using a single gate, we use a separate gate for the
-    subtask parameter and for the internal memory pointer.
+
+Our architecture incorporates two gates, one for the
+    subtask parameter and one for the internal memory pointer.
 Concretely, we project $\mathbf{h}_t$ to two Bernoulli distributions, from which
 we sample the gate values, $c_g$ and $c_p$. Having produced tentative new values
 for the subtask parameter $\tilde{\mathbf{g}}_t$ and the internal pointer
 $\tilde{p}_t$, we set $\mathbf{g}_t = c_g\tilde{\mathbf{g}}_t + (1 -
-c_g)\mathbf{g}_{t-1}$ and  $p_t = c_p\tilde{p}_t + (1 - c_p)p_{t-1}$.
+c_g)\mathbf{g}_{t-1}$ and  $p_t = c_p\tilde{p}_t + (1 - c_p)p_{t-1}$. We train these
+Bernoulli distributions with reinforcement learning (details in section
+\ref{implementation}).
 
-  \item Like OLSK, we divide the recurrent hidden state $\mathbf{h}_t$ into two
+
+Moreover,  we divide the recurrent hidden state $\mathbf{h}_t$ into two
     parts, one updated every time-step and one updated only when the value of
-    the gates is one. However, we condition the distribution from which the gate
+    the gates is one. We condition the distribution from which the gate
     values are sampled exclusively on the hidden state that is updated each
     time-step and we condition $V_t$ (the value estimate), $\mathbf{u}_t$ and
     the subtask parameter distribution on the hidden state that is only updated
     when the gate values are 1.
-\end{enumerate}
+
 
 Pseudocode for the full algorithm used on the complex environment is provided in
 Appendix \ref{full-algorithm}.
