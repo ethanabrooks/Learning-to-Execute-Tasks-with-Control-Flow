@@ -100,6 +100,57 @@ Instructions}
 \section{Pseudocode for full algorithm used on ``complex'' task}
 \label{full-algorithm}
 
+\begin{algorithm}[H]
+  \caption{No pointer}
+  \begin{algorithmic}[1]
+    \STATE {\bfseries Inputs:} $p_t, \mathbf{M} , \mathbf{x}_t, \mathbf{h}_{t-1}$
+    \textcolor{red}{\STATE ${\mathbf{H}_t} \gets \BIGRU\left(\mathbf{M}\right)$}
+    \STATE $V_t, \mathbf{h}_t  \gets \GRU\left(\mathbf{x}_t,
+    \textcolor{red}{\mathbf{H}}, \mathbf{h}_{t-1}\right)$
+    %\STATE number of lines per instruction $n \in \mathbb{N}$,
+    %\STATE max graph arity $w \in \mathbb{N}$,
+    %\STATE hidden-state size $h \in \mathbb{N}$,
+    %\STATE embedded instruction matrix $\mathbf{M} \in \mathbb{R}^{n\times h}$,
+    %\STATE observation $\mathbf{x}_t \in \mathbb{R}^{m}$ for each time-step
+    %$t$ of episode.
+    %\FOR{each episode}
+    %\STATE $p_0 \gets 0$
+    %\COMMENT{begin episode attending to memory slot 0}
+    %\STATE $\mathbf{h}_0 \gets \mathbf{0}$
+    %\COMMENT{$\mathbf{h}_0\in \mathbb{R}^h$}
+    %\COMMENT{
+      %$\mathbf{\pi}_t \in \mathbb{R}^\mathcal{A}$. $V_t$ is the current value
+    %estimate. $\mathbf{u}_t\in \mathbb{R}^w$.}
+    \STATE $\mathbf{g}_{t} \sim \pi_\theta\left(\mathbf{h}_t\right)$
+    %\COMMENT{$\mathbf{g}_t$ is the current action}
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \caption{Simple}
+  \begin{algorithmic}[1]
+    \STATE {\bfseries Inputs:} $p_t, \mathbf{M} , \mathbf{x}_t, \mathbf{h}_{t-1}$
+    \STATE $V_t, \mathbf{h}_t  \gets \GRU\left(\mathbf{x}_t,
+    \textcolor{red}{\mathbf{M}}, \mathbf{h}_{t-1}\right)$
+    %\STATE number of lines per instruction $n \in \mathbb{N}$,
+    %\STATE max graph arity $w \in \mathbb{N}$,
+    %\STATE hidden-state size $h \in \mathbb{N}$,
+    %\STATE embedded instruction matrix $\mathbf{M} \in \mathbb{R}^{n\times h}$,
+    %\STATE observation $\mathbf{x}_t \in \mathbb{R}^{m}$ for each time-step
+    %$t$ of episode.
+    %\FOR{each episode}
+    %\STATE $p_0 \gets 0$
+    %\COMMENT{begin episode attending to memory slot 0}
+    %\STATE $\mathbf{h}_0 \gets \mathbf{0}$
+    %\COMMENT{$\mathbf{h}_0\in \mathbb{R}^h$}
+    %\COMMENT{
+      %$\mathbf{\pi}_t \in \mathbb{R}^\mathcal{A}$. $V_t$ is the current value
+    %estimate. $\mathbf{u}_t\in \mathbb{R}^w$.}
+    \STATE $\mathbf{g}_{t} \sim \pi_\theta\left(\mathbf{h}_t\right)$
+    %\COMMENT{$\mathbf{g}_t$ is the current action}
+  \end{algorithmic}
+\end{algorithm}
+
 \begin{algorithm}[h]
 %\captionFull algorithm for generation of subtask parameters per episode}
 \label{subtask-update}
