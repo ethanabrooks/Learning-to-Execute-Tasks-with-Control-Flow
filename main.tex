@@ -49,7 +49,7 @@
 %\usepackage{icml2019}
 
 % If accepted, instead use the following line for the camera-ready submission:
-\usepackage[accepted]{icml2019}
+\usepackage{icml2019}
 \graphicspath{{figures/}} 
 \pgfdeclareimage[height=0.6cm]{goat}{figures/goat}
 \pgfdeclareimage[height=0.6cm]{pig}{figures/pig}
@@ -59,15 +59,15 @@
 
 % The \icmltitle you define below is probably too long as a header.
 % Therefore, a short form for the running title is supplied here:
-\icmltitlerunning{Hierarchical Reinforcement Learning with Complex Control-Flow
-Instructions}
+\icmltitlerunning{Reinforcement Learning to Interpret and Follow Task Instructions with Conditional Control Flow
+}
 
 
 \begin{document}
 
 \twocolumn[
-\icmltitle{Hierarchical Reinforcement Learning with Complex Control-Flow
-Instructions}
+\icmltitle{Reinforcement Learning to Interpret and Follow Task Instructions with Conditional Control Flow
+}
 
 % It is OKAY to include author information, even for blind
 % submissions: the style file will automatically remove it for you
@@ -112,9 +112,7 @@ Instructions}
 %\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 
 \begin{abstract}
-  This research studies instructions comprising subtasks with nonlinear control-flow based on conditions in
-  the environment. We present an algorithm capable not only of performing these
-  instructions, but of zero-shot generalization to longer instructions.
+We consider the problem of building Reinforcement Learning (RL)  agents that can learn to follow instructions provided as a sequence of discrete symbols that denote actions, objects, conditions, and (if-then-else) branching and (while) looping control structures. Importantly, the meaning of the symbols and their form of combination is not provided to the agent. Rather, the agent must learn how to interpret the instruction language from trial and error experience and a reward signal encoding only task success or failure, grounding the symbols in the environment and desired behavior.  The work builds on recent deep learning RL agent architectures that learn to update and maintain attentional pointers to a learned internal memory encoding of instructions, using the attentional state to condition behavior. The novel contribution of this work is an encoding and attention architecture that learns the multi-step skipping forward and backward required by the control structures in the instructions.  Our results show zero-shot generalization to instructions of length much greater than the training set, including combinations of both looping and branching control structure not seen in training.
 \end{abstract}
 
 \section{Introduction}
